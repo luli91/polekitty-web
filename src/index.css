@@ -1,0 +1,18 @@
+@import "tailwindcss";
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Oculta las barras de scroll en navegadores WebKit */
+section::-webkit-scrollbar {
+  display: none;
+}
+
+/* Oculta en Firefox */
+section {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer/Edge */
+}
+
