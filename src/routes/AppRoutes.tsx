@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage";
-import Dashboard from "../pages/Dashboard";
+import Dashboard from "../pages/dashboard/Dashboard";
 import CalendarPage from "../pages/CalendarPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Gallery from "../pages/Gallery";
@@ -9,7 +9,10 @@ import Landing from "../components/Landing";
 import { useAuth } from "../context/AuthContext";
 import RegistroPage from "../pages/RegisterPage";
 import PerfilPage from "../pages/PerfilPage";
-
+import Alumnas from "../pages/dashboard/alumnas/Alumnas";
+import MainPanel from "../components/MainPanel";
+import PerfilClientaPage from "../pages/dashboard/alumnas/PerfilClientaPage";
+import AgregarAlumnaPage from "../pages/dashboard/alumnas/AgregarAlumnaPage";
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -39,7 +42,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/dashboard"
           element={
@@ -47,15 +49,13 @@ const AppRoutes = () => {
               <Dashboard />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/clases"
-          element={
-            <ProtectedRoute isAllowed={isLoggedIn}>
-              <CalendarPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<MainPanel />} />
+          <Route path="alumnas" element={<Alumnas />} />
+          <Route path="agregar-alumna" element={<AgregarAlumnaPage />} />
+          <Route path="clases" element={<CalendarPage />} />
+          <Route path="clienta/:uid" element={<PerfilClientaPage />} />
+        </Route>
       </Routes>
     </Router>
   );
