@@ -72,12 +72,12 @@ const Alumnas = () => {
   const total = usuarios.length;
   const habilitadas = usuarios.filter(u => u.puedeAnotarse).length;
   const capitalize = (str: string) =>
-  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
   return (
-    <div className="p-6 text-black">
-      <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-        <UserIcon className="w-6 h-6 text-pink-500" />
+    <div className="p-4 md:p-6 pt-16 md:pt-6 text-black">
+      <h2 className="text-xl md:text-2xl font-bold mb-2 flex items-center gap-2">
+        <UserIcon className="w-5 h-5 md:w-6 md:h-6 text-pink-500" />
         Lista de Alumnas
       </h2>
       <p className="text-sm text-gray-600 mb-4">
@@ -89,48 +89,53 @@ const Alumnas = () => {
         placeholder="Buscar por nombre..."
         value={filter}
         onChange={e => setFilter(e.target.value)}
-        className="mb-4 p-2 border rounded w-full"
+        className="mb-4 p-2 border rounded w-full max-w-md"
       />
 
       {usuariosFiltrados.length === 0 ? (
         <p>No se encontraron alumnas.</p>
       ) : (
-        usuariosFiltrados.map(usuario => (
-          <div key={usuario.id} className="flex justify-between items-center mb-2 bg-white/80 p-3 rounded shadow">
-            <div>
-              <p className="font-semibold text-lg text-pink-700">
-                {capitalize(usuario.nombre)} {capitalize(usuario.apellido ?? "")}
-              </p>
-              <p className="text-sm text-gray-600">{usuario.email}</p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                Estado:{" "}
-                {usuario.puedeAnotarse ? (
-                  <span className="flex items-center text-green-600">
-                    <CheckCircleIcon className="w-4 h-4" /> Habilitada
-                  </span>
-                ) : (
-                  <span className="flex items-center text-red-600">
-                    <XCircleIcon className="w-4 h-4" /> No habilitada
-                  </span>
-                )}
-              </p>
-            </div>
-            <Link
-              to={`/dashboard/clienta/${usuario.uid}`}
-              className="bg-pink-500 text-white px-3 py-1 rounded hover:bg-pink-600 transition"
-              title="Ver perfil y habilitar"
+        <div className="space-y-3">
+          {usuariosFiltrados.map(usuario => (
+            <div
+              key={usuario.id}
+              className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white/80 p-4 rounded shadow"
             >
-              Ver perfil
-            </Link>
-          </div>
-        ))
+              <div className="flex-1">
+                <p className="font-semibold text-lg text-pink-700">
+                  {capitalize(usuario.nombre)} {capitalize(usuario.apellido ?? "")}
+                </p>
+                <p className="text-sm text-gray-600 break-all">{usuario.email}</p>
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                  Estado:{" "}
+                  {usuario.puedeAnotarse ? (
+                    <span className="flex items-center text-green-600">
+                      <CheckCircleIcon className="w-4 h-4" /> Habilitada
+                    </span>
+                  ) : (
+                    <span className="flex items-center text-red-600">
+                      <XCircleIcon className="w-4 h-4" /> No habilitada
+                    </span>
+                  )}
+                </p>
+              </div>
+              <Link
+                to={`/dashboard/clienta/${usuario.uid}`}
+                className="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600 transition text-sm w-full md:w-auto text-center"
+                title="Ver perfil y habilitar"
+              >
+                Ver perfil
+              </Link>
+            </div>
+          ))}
+        </div>
       )}
 
       {!noMore && (
         <button
           onClick={fetchUsuarios}
           disabled={loading}
-          className="mt-4 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition disabled:opacity-50"
+          className="mt-6 px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition disabled:opacity-50 w-full md:w-auto"
         >
           {loading ? "Cargando..." : "Cargar más"}
         </button>
