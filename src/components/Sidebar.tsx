@@ -41,7 +41,7 @@ const Sidebar = () => {
           {/* Alumnas con submenú */}
           <Disclosure>
             {({ open }) => (
-              <>
+              <div>
                 <DisclosureButton className="flex justify-between items-center w-full px-2 py-2 text-left hover:text-pink-400 transition">
                   <div className="flex items-center gap-3">
                     <FaUserFriends className="text-lg group-hover:text-pink-400 transition" />
@@ -59,7 +59,7 @@ const Sidebar = () => {
                     Agregar
                   </Link>
                 </DisclosurePanel>
-              </>
+              </div>
             )}
           </Disclosure>
 

@@ -11,7 +11,7 @@ import {
 import { db } from "../firebase";
 import FormularioAlumna from "../components/FormularioAlumna";
 import type { FormFields } from "../components/FormularioAlumna";
-import PoleImage from "../../public/image-login.jpg";
+import PoleImage from "../../public/registerphoto.jpeg";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
