@@ -193,7 +193,9 @@ const PerfilPage = () => {
               ) : (
                 <div className="space-y-2">
                 <p>No tenés clases anotadas todavía.</p>
-                <button className="px-3 py-1 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition w-fit">
+                <button 
+                onClick={() => navigate("/calendario")}
+                className="px-3 py-1 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition w-fit">
                   Reservar una clase
                 </button>
               </div>

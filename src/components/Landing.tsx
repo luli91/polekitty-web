@@ -47,7 +47,7 @@ export default function Landing() {
       whileHover={{ scale: 1.05 }}
       className="bg-white/10 backdrop-blur-md text-white rounded-xl border border-white/20 shadow-xl py-6 px-4 cursor-pointer hover:bg-white/20 hover:border-white/40 transition duration-300"
     >
-      <Link to="/login">
+      <Link to="/calendario">
         <h3 className="font-bold text-lg mb-2">Reservar Clase</h3>
         <p className="text-sm">Accedé al calendario y asegurá tu lugar</p>
       </Link>

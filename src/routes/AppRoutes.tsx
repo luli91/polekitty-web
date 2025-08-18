@@ -13,6 +13,7 @@ import Alumnas from "../pages/dashboard/alumnas/Alumnas";
 import MainPanel from "../components/MainPanel";
 import PerfilClientaPage from "../pages/dashboard/alumnas/PerfilClientaPage";
 import AgregarAlumnaPage from "../pages/dashboard/alumnas/AgregarAlumnaPage";
+import ListadoClase from "../pages/dashboard/ListadoClase";
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -33,7 +34,14 @@ const AppRoutes = () => {
           path="/registro"
           element={!isLoggedIn ? <RegistroPage /> : <Navigate to="/perfil" />}
         />
-
+        <Route
+          path="/calendario"
+          element={
+            <ProtectedRoute isAllowed={isLoggedIn && !isAdmin}>
+              <CalendarPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/perfil"
           element={
@@ -53,7 +61,7 @@ const AppRoutes = () => {
           <Route index element={<MainPanel />} />
           <Route path="alumnas" element={<Alumnas />} />
           <Route path="agregar-alumna" element={<AgregarAlumnaPage />} />
-          <Route path="clases" element={<CalendarPage />} />
+          <Route path="clases" element={<ListadoClase />} />
           <Route path="clienta/:uid" element={<PerfilClientaPage />} />
         </Route>
       </Routes>
