@@ -10,8 +10,9 @@ interface Clase {
   id: string;
   fecha: Date;
   cuposDisponibles: number;
-  descripcion: string;
+  nivel: string;
   yaAnotada: boolean;
+  horario?: string;
 }
 
 const ClasesDisponiblesSemana = () => {
@@ -48,8 +49,9 @@ const ClasesDisponiblesSemana = () => {
           id: doc.id,
           fecha: data.fecha.toDate(),
           cuposDisponibles,
-          descripcion: data.descripcion || "Clase sin descripción",
+          nivel: data.nivel || "Nivel no definido",
           yaAnotada,
+          horario: data.horario || null,
         };
       });
 
@@ -94,11 +96,11 @@ const ClasesDisponiblesSemana = () => {
           const fecha = dayjs(clase.fecha);
           const dia = fecha.format("dddd");
           const diaNumero = fecha.format("D");
-          const hora = fecha.format("HH:mm");
+          const hora = clase.horario ?? fecha.format("HH:mm");
 
           return (
             <li key={clase.id} className="bg-gray-800 p-2 rounded-lg border-l-2 border-fuchsia-600">
-              <span className="font-semibold text-fuchsia-300">{clase.descripcion}</span>{" "}
+              <span className="font-semibold text-fuchsia-300">{clase.nivel}</span>{" "}
               <span className="text-fuchsia-400">| {dia} {diaNumero} – {hora}</span>{" "}
               {clase.yaAnotada ? (
                 <span className="text-green-400 font-semibold">💖 Ya estás anotada</span>
