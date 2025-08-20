@@ -1,7 +1,19 @@
-import { doc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  collection,
+  setDoc,
+  Timestamp,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import { cancelarClaseYNotificar } from "../services/notificaciones";
+import { useAuth } from "../context/AuthContext";
 
 interface Clase {
   id: string;
@@ -15,25 +27,29 @@ interface Clase {
 interface ModalReservaClaseProps {
   fecha: string;
   clases: Clase[];
-  user: any;
   onClose: () => void;
   setToast: (toast: { mensaje: string; tipo?: "exito" | "error" | "info" }) => void;
 }
 
-const ModalReservaClase = ({ fecha, clases, user, onClose, setToast }: ModalReservaClaseProps) => {
+const ModalReservaClase = ({ fecha, clases, onClose, setToast }: ModalReservaClaseProps) => {
+  const { user } = useAuth();
   const [clasesActualizadas, setClasesActualizadas] = useState<Clase[]>([]);
 
   useEffect(() => {
     const unsubscribes = clases.map(clase => {
-      const claseRef = doc(db, "clases", clase.id);
-      return onSnapshot(claseRef, snapshot => {
-        const data = snapshot.data();
-        if (data) {
-          setClasesActualizadas(prev => {
-            const sinEsta = prev.filter(c => c.id !== clase.id);
-            return [...sinEsta, { id: clase.id, ...data } as Clase];
-          });
-        }
+      const reservasRef = collection(db, `clases/${clase.id}/reservas`);
+      return onSnapshot(reservasRef, snapshot => {
+        const anotadas = snapshot.docs.map(doc => doc.data().uid);
+        setClasesActualizadas(prev => {
+          const sinEsta = prev.filter(c => c.id !== clase.id);
+          return [
+            ...sinEsta,
+            {
+              ...clase,
+              anotadas,
+            },
+          ];
+        });
       });
     });
 
@@ -41,18 +57,48 @@ const ModalReservaClase = ({ fecha, clases, user, onClose, setToast }: ModalRese
   }, [clases]);
 
   const handleReserva = async (claseId: string) => {
-    await updateDoc(doc(db, "clases", claseId), {
-      anotadas: arrayUnion(user.uid),
+    if (!user) return;
+
+    const perfilRef = doc(db, "users", user.uid);
+    const perfilSnap = await getDoc(perfilRef);
+    const puedeAnotarse = perfilSnap.data()?.puedeAnotarse;
+
+    if (!puedeAnotarse) {
+      setToast({
+        mensaje: "❌ No estás habilitada para reservar. Contactá a Flor.",
+        tipo: "error",
+      });
+      return;
+    }
+
+    const reservaRef = doc(db, `clases/${claseId}/reservas`, user.uid);
+    await setDoc(reservaRef, {
+      uid: user.uid,
+      nombre: user.displayName,
+      timestamp: Timestamp.now(),
     });
+
+    await updateDoc(perfilRef, {
+      clasesReservadas: arrayUnion(claseId),
+    });
+
     setToast({ mensaje: "¡Clase reservada! 💖", tipo: "exito" });
     onClose();
   };
 
   const handleCancelacion = async (claseId: string) => {
-    await updateDoc(doc(db, "clases", claseId), {
-      anotadas: arrayRemove(user.uid),
+    if (!user) return;
+
+    await cancelarClaseYNotificar(claseId, user.uid);
+
+    await updateDoc(doc(db, "users", user.uid), {
+      clasesReservadas: arrayRemove(claseId),
     });
-    setToast({ mensaje: "Tu lugar fue liberado. ¡Te esperamos cuando estés lista! 🌙", tipo: "info" });
+
+    setToast({
+      mensaje: "Cancelaste tu lugar y otras alumnas fueron notificadas 💌",
+      tipo: "info",
+    });
     onClose();
   };
 
@@ -60,7 +106,7 @@ const ModalReservaClase = ({ fecha, clases, user, onClose, setToast }: ModalRese
 
   const clasesOrdenadas = clasesActualizadas
     .slice()
-    .sort((a, b) => {
+    .sort((a: Clase, b: Clase) => {
       const horaA = dayjs(`${fecha} ${a.horario}`, "YYYY-MM-DD HH:mm");
       const horaB = dayjs(`${fecha} ${b.horario}`, "YYYY-MM-DD HH:mm");
       return horaA.diff(horaB);
@@ -79,7 +125,7 @@ const ModalReservaClase = ({ fecha, clases, user, onClose, setToast }: ModalRese
           ) : (
             <ul className="space-y-3">
               {clasesOrdenadas.map(clase => {
-                const yaAnotada = clase.anotadas?.includes(user.uid);
+                const yaAnotada = clase.anotadas?.includes(user?.uid || "");
                 const cupoRestante = clase.cupoMaximo - clase.anotadas.length;
                 const claseLlena = cupoRestante <= 0;
 

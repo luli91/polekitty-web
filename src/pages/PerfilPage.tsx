@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import CampoEditable from "../components/CampoEditable";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 
 // Tipos
@@ -13,7 +14,6 @@ interface ClaseReservada {
   hora: string;
   nivel: string;
 }
-
 
 export interface UserData {
   uid: string;
@@ -27,23 +27,20 @@ export interface UserData {
     numero: string;
     ciudad: string;
   };
-  clasesReservadas: {
-    fecha: string;
-    hora: string;
-    nivel: string;
-  }[];
+  clasesReservadas: string[]; // ahora es array de claseId
   notificacionesActivas: boolean;
   role: string;
-  displayName?: string; 
+  displayName?: string;
 }
 
 const PerfilPage = () => {
   const { user, setUser } = useAuth() as {
-  user: UserData;
-  setUser: (u: UserData) => void;
-};
+    user: UserData;
+    setUser: (u: UserData) => void;
+  };
 
   const navigate = useNavigate();
+  const [clasesValidas, setClasesValidas] = useState<ClaseReservada[]>([]);
 
   const handleLogout = async () => {
     const auth = getAuth();
@@ -52,47 +49,54 @@ const PerfilPage = () => {
   };
 
   const handleGuardarCampo = async (campo: string, nuevoValor: string) => {
-  const docRef = doc(db, "users", user.uid);
+    const docRef = doc(db, "users", user.uid);
 
-  if (campo.includes("direccion.")) {
-    const subcampo = campo.split(".")[1];
-    const nuevaDireccion = {
-  calle: user.direccion?.calle || "",
-  numero: user.direccion?.numero || "",
-  ciudad: user.direccion?.ciudad || "",
-  [subcampo]: nuevoValor,
-};
+    if (campo.includes("direccion.")) {
+      const subcampo = campo.split(".")[1];
+      const nuevaDireccion = {
+        calle: user.direccion?.calle || "",
+        numero: user.direccion?.numero || "",
+        ciudad: user.direccion?.ciudad || "",
+        [subcampo]: nuevoValor,
+      };
 
-
-    await updateDoc(docRef, { direccion: nuevaDireccion });
-    setUser({ ...user, direccion: nuevaDireccion });
-  } else {
-    await updateDoc(docRef, { [campo]: nuevoValor });
-    setUser({ ...user, [campo]: nuevoValor });
-  }
-};
-
+      await updateDoc(docRef, { direccion: nuevaDireccion });
+      setUser({ ...user, direccion: nuevaDireccion });
+    } else {
+      await updateDoc(docRef, { [campo]: nuevoValor });
+      setUser({ ...user, [campo]: nuevoValor });
+    }
+  };
 
   const capitalize = (str: string) =>
     str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
-  const clasesReservadas = Array.isArray(user?.clasesReservadas)
-    ? user.clasesReservadas.filter(
-        (clase): clase is ClaseReservada =>
-          typeof clase === "object" &&
-          clase !== null &&
-          "fecha" in clase &&
-          "hora" in clase &&
-          "nivel" in clase
-      )
-    : [];
+  useEffect(() => {
+    const fetchClasesReservadas = async () => {
+      if (!user?.clasesReservadas || user.clasesReservadas.length === 0) return;
 
-  const clasesValidas = clasesReservadas.filter(
-    (clase) =>
-      clase.fecha?.trim() !== "" &&
-      clase.hora?.trim() !== "" &&
-      clase.nivel?.trim() !== ""
-  );
+      const clases: ClaseReservada[] = [];
+
+      for (const claseId of user.clasesReservadas) {
+        const claseRef = doc(db, "clases", claseId);
+        const claseSnap = await getDoc(claseRef);
+        const data = claseSnap.data();
+
+        if (data?.fecha && data?.horario && data?.nivel) {
+          const fechaStr = data.fecha.toDate().toLocaleDateString("es-AR");
+          clases.push({
+            fecha: fechaStr,
+            hora: data.horario,
+            nivel: data.nivel,
+          });
+        }
+      }
+
+      setClasesValidas(clases);
+    };
+
+    fetchClasesReservadas();
+  }, [user]);
 
   const eventosDisponibles = [
     { nombre: "Halloween Pole Jam", fecha: "31/10" },
@@ -175,51 +179,54 @@ const PerfilPage = () => {
             <div className="bg-gray-850 p-4 rounded-xl shadow-md border border-fuchsia-700">
               <h4 className="text-fuchsia-300 font-semibold mb-2">📅 Próxima clase</h4>
               {clasesValidas.length > 0 ? (
-                <p>{clasesValidas[0].fecha} - {clasesValidas[0].hora}<br />{clasesValidas[0].nivel}</p>
+                                <p>{clasesValidas[0].fecha} - {clasesValidas[0].hora}<br />{clasesValidas[0].nivel}</p>
               ) : (
                 <p>No tenés clases reservadas aún.</p>
               )}
             </div>
 
-            {/* Todas las clases */}
+            {/* Todas las clases reservadas */}
             <div className="bg-gray-850 p-4 rounded-xl shadow-md border border-fuchsia-700">
               <h4 className="text-fuchsia-300 font-semibold mb-2">📘 Tus clases reservadas</h4>
               {clasesValidas.length > 0 ? (
                 <ul className="list-disc list-inside space-y-1">
                   {clasesValidas.map((clase, index) => (
-                    <li key={index}>{clase.fecha} - {clase.hora} ({clase.nivel})</li>
+                    <li key={index}>
+                      {clase.fecha} - {clase.hora} ({clase.nivel})
+                    </li>
                   ))}
                 </ul>
               ) : (
                 <div className="space-y-2">
-                <p>No tenés clases anotadas todavía.</p>
-                <button 
-                onClick={() => navigate("/calendario")}
-                className="px-3 py-1 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition w-fit">
-                  Reservar una clase
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Eventos disponibles */}
-          <div className="bg-gray-850 p-4 rounded-xl shadow-md border border-violet-700">
-            <h4 className="text-violet-300 font-semibold mb-2">🎉 Eventos disponibles</h4>
-            <ul className="space-y-4">
-              {eventosDisponibles.map((evento, index) => (
-                <li key={index} className="flex flex-col">
-                  <span className="text-white font-medium">{evento.nombre}</span>
-                  <span className="text-gray-400 text-sm mb-2">Fecha: {evento.fecha}</span>
-                  <button className="px-3 py-1 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition w-fit">
-                    Quiero participar
+                  <p>No tenés clases anotadas todavía.</p>
+                  <button
+                    onClick={() => navigate("/calendario")}
+                    className="px-3 py-1 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition w-fit"
+                  >
+                    Reservar una clase
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Eventos disponibles */}
+            <div className="bg-gray-850 p-4 rounded-xl shadow-md border border-violet-700">
+              <h4 className="text-violet-300 font-semibold mb-2">🎉 Eventos disponibles</h4>
+              <ul className="space-y-4">
+                {eventosDisponibles.map((evento, index) => (
+                  <li key={index} className="flex flex-col">
+                    <span className="text-white font-medium">{evento.nombre}</span>
+                    <span className="text-gray-400 text-sm mb-2">Fecha: {evento.fecha}</span>
+                    <button className="px-3 py-1 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition w-fit">
+                      Quiero participar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

@@ -1,41 +1,16 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import ModalReservaClase from "./ModalReservaClase";
-import { useAuth } from "../context/AuthContext";
 
 const diasPermitidos = ["Wednesday", "Friday", "Saturday"];
 const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
-const horariosPorDia: Record<string, { horario: string; nivel: string }[]> = {
-  Wednesday: [
-    { horario: "18:40", nivel: "Pole sport" },
-    { horario: "19:45", nivel: "Pole exotic" },
-  ],
-  Friday: [
-    { horario: "14:40", nivel: "Pole exotic" },
-    { horario: "16:00", nivel: "Pole exotic" },
-    { horario: "17:30", nivel: "Pole exotic" },
-    { horario: "19:00", nivel: "Pole exotic" },
-  ],
-  Saturday: [
-    { horario: "16:00", nivel: "Pole exotic" },
-    { horario: "17:30", nivel: "Pole sport" },
-    { horario: "19:00", nivel: "Pole exotic" },
-  ],
-};
 
 const CalendarioMensual = ({
   setToast,
 }: {
   setToast: (toast: { mensaje: string; tipo?: "exito" | "error" | "info" }) => void;
 }) => {
-  const { user } = useAuth();
   const [clases, setClases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
@@ -69,60 +44,9 @@ const CalendarioMensual = ({
     setLoading(false);
   };
 
-  const generarClasesDelMes = async (mes: number) => {
-    const diasEnMes = new Date(año, mes + 1, 0).getDate();
-    let nuevas = 0;
-
-    for (let i = 1; i <= diasEnMes; i++) {
-      const fecha = new Date(año, mes, i);
-      const diaSemana = fecha.toLocaleDateString("en-US", { weekday: "long" });
-
-      if (!horariosPorDia[diaSemana]) continue;
-
-      for (const { horario, nivel } of horariosPorDia[diaSemana]) {
-        const fechaStr = formatearFecha(fecha);
-        const yaExiste = clases.some((c) => {
-          const f = c.fecha?.toDate?.();
-          return (
-            formatearFecha(f) === fechaStr &&
-            c.horario === horario &&
-            c.nivel === nivel
-          );
-        });
-
-        if (yaExiste) continue;
-
-        await addDoc(collection(db, "clases"), {
-          fecha: Timestamp.fromDate(fecha),
-          horario,
-          nivel,
-          cupoMaximo: 6,
-          anotadas: [],
-          esEvento: false,
-        });
-
-        nuevas++;
-      }
-    }
-
-    if (nuevas > 0) {
-      setToast({
-        mensaje: `✨ Se generaron ${nuevas} clases nuevas para ${nombreMes(mes)}.`,
-        tipo: "exito",
-      });
-      fetchClases();
-    }
-  };
-
   useEffect(() => {
     fetchClases();
   }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      generarClasesDelMes(mesSeleccionado);
-    }
-  }, [mesSeleccionado, loading]);
 
   const mesesParaMostrar = [mesSeleccionado, mesSeleccionado + 1];
 
@@ -176,23 +100,9 @@ const CalendarioMensual = ({
 
                         const fechaStr = formatearFecha(fecha);
                         const diaSemana = fecha.toLocaleDateString("en-US", { weekday: "long" });
-
-                        const clasesDelDia = clases.filter((c) => {
-                          const fechaClase = c.fecha?.toDate?.();
-                          if (!fechaClase) return false;
-                          return formatearFecha(fechaClase) === fechaStr;
-                        });
-
-                        const clasesConCupo = clasesDelDia.filter(
-                          (c) => (c.cupoMaximo ?? 0) > (c.anotadas?.length ?? 0)
-                        );
-
-                        const hayCupo = clasesConCupo.length > 0;
                         const esPermitido = diasPermitidos.includes(diaSemana);
 
-                        const color = hayCupo
-                          ? "bg-gray-850 border-fuchsia-700"
-                          : esPermitido
+                        const color = esPermitido
                           ? "bg-gray-900 border-gray-700"
                           : "bg-gray-950 border-gray-800 opacity-40";
 
@@ -201,9 +111,9 @@ const CalendarioMensual = ({
                             key={fechaStr}
                             className={`border rounded-md p-1 sm:p-2 min-h-[60px] sm:min-h-[80px] text-[11px] sm:text-sm shadow-sm cursor-pointer transition-all
                               ${color}
-                              ${hayCupo ? "border-fuchsia-500 hover:shadow-fuchsia-md" : ""}
+                              ${esPermitido ? "hover:shadow-fuchsia-md" : ""}
                             `}
-                            onClick={() => esPermitido && hayCupo && setDiaSeleccionado(fechaStr)}
+                            onClick={() => esPermitido && setDiaSeleccionado(fechaStr)}
                           >
                             <p className="text-fuchsia-300 font-medium">{fecha.getDate()}</p>
                           </div>
@@ -224,12 +134,8 @@ const CalendarioMensual = ({
           clases={clases.filter((c) => {
             const fechaClase = c.fecha?.toDate?.();
             if (!fechaClase) return false;
-            return (
-              formatearFecha(fechaClase) === diaSeleccionado &&
-              (c.cupoMaximo ?? 0) > (c.anotadas?.length ?? 0)
-            );
+            return formatearFecha(fechaClase) === diaSeleccionado;
           })}
-          user={user}
           onClose={() => setDiaSeleccionado(null)}
           setToast={setToast}
         />
