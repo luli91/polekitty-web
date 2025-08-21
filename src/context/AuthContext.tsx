@@ -1,6 +1,12 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 import { ensureUserProfile } from "../services/auth";
 import type { UserData } from "../types";
 
@@ -13,17 +19,19 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
-  setUser: () => {}, 
+  setUser: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uid, setUid] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setUser(null);
+        setUid(null);
         setLoading(false);
         return;
       }
@@ -31,16 +39,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const userData = await ensureUserProfile(firebaseUser);
         setUser(userData);
+        setUid(firebaseUser.uid); 
       } catch (error) {
         console.error("Error al cargar datos del usuario:", error);
         setUser(null);
+        setUid(null);
       }
 
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
+
+  useEffect(() => {
+    if (!uid) return;
+
+    const userDocRef = doc(db, "users", uid);
+    const unsubscribeSnapshot = onSnapshot(userDocRef, (docSnap) => {
+      const data = docSnap.data();
+      if (data) {
+        setUser(data as UserData);
+      }
+    });
+
+    return () => unsubscribeSnapshot();
+  }, [uid]);
 
   return (
     <AuthContext.Provider value={{ user, loading, setUser }}>

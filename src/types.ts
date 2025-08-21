@@ -10,17 +10,18 @@ export interface UserData {
   uid: string;
   email: string;
   displayName: string;
-  role: "admin" | "user";
+  role: Role;
   notificacionesActivas: boolean;
-  clasesReservadas: (ClaseReservada | string)[];
+  puedeAnotarse: boolean; 
+ clasesReservadas: string[];
   nombre: string;
   apellido: string;
-  edad: number;
+  edad: number | null; 
   telefono: string;
   direccion: {
     calle: string;
     numero: string;
     ciudad: string;
   };
+  cuentaCreada?: boolean; 
 }
-

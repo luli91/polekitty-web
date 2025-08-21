@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export type FormFields = {
   nombre: string;
@@ -69,6 +70,7 @@ const FormularioAlumna = ({
     }
   );
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prevForm) => ({
@@ -137,8 +139,23 @@ const FormularioAlumna = ({
         <Input field="telefono" value={form.telefono} onChange={handleChange} />
         <Input field="email" value={form.email} onChange={handleChange} />
         {includePassword && (
-          <Input field="password" type="password" value={form.password || ""} onChange={handleChange} />
-        )}
+  <div className="relative">
+    <Input
+      field="password"
+      type={showPassword ? "text" : "password"}
+      value={form.password || ""}
+      onChange={handleChange}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-3 top-9 text-fuchsia-400 hover:text-fuchsia-300"
+    >
+      {showPassword ? <FaEyeSlash /> : <FaEye />}
+    </button>
+  </div>
+)}
+
       </div>
     );
 
@@ -167,7 +184,7 @@ const FormularioAlumna = ({
           onSubmit={handleSubmit}
           className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-fuchsia-600"
         >
-          <h2 className="text-3xl font-bold mb-6 text-fuchsia-400 text-center tracking-wide">
+          <h2 className="text-3xl font-bold mb-6 text-violet-400 text-center tracking-wide">
             Registro de Alumna
           </h2>
 

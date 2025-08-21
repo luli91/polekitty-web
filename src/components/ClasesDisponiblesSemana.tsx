@@ -8,10 +8,10 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
 import dayjs from "dayjs";
 import "dayjs/locale/es";
 import isBetween from "dayjs/plugin/isBetween";
+import { useAuth } from "../context/AuthContext";
 
 dayjs.locale("es");
 dayjs.extend(isBetween);
@@ -28,10 +28,9 @@ interface Clase {
 const ClasesDisponiblesSemana = () => {
   const [clases, setClases] = useState<Clase[]>([]);
   const [modo, setModo] = useState<"semana" | "mes" | "siguiente">("semana");
+  const { user } = useAuth(); 
 
   useEffect(() => {
-    const auth = getAuth();
-    const user = auth.currentUser;
     if (!user) return;
 
     const uidActual = user.uid;
@@ -117,7 +116,7 @@ const ClasesDisponiblesSemana = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]); 
 
   if (clases.length === 0) {
     return (
@@ -173,3 +172,4 @@ const ClasesDisponiblesSemana = () => {
 };
 
 export default ClasesDisponiblesSemana;
+

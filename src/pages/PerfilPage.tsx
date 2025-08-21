@@ -7,31 +7,7 @@ import Navbar from "../components/Navbar";
 import CampoEditable from "../components/CampoEditable";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-
-// Tipos
-interface ClaseReservada {
-  fecha: string;
-  hora: string;
-  nivel: string;
-}
-
-export interface UserData {
-  uid: string;
-  nombre: string;
-  apellido: string;
-  edad: number | null;
-  email: string;
-  telefono: string;
-  direccion?: {
-    calle: string;
-    numero: string;
-    ciudad: string;
-  };
-  clasesReservadas: string[]; // ahora es array de claseId
-  notificacionesActivas: boolean;
-  role: string;
-  displayName?: string;
-}
+import type { UserData, ClaseReservada } from "../types";
 
 const PerfilPage = () => {
   const { user, setUser } = useAuth() as {

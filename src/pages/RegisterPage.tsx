@@ -1,80 +1,67 @@
 import { useNavigate } from "react-router-dom";
 import { registerWithEmail } from "../services/auth";
 import {
-  doc,
   setDoc,
   collection,
   query,
   where,
   getDocs,
+  doc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import FormularioAlumna from "../components/FormularioAlumna";
 import type { FormFields } from "../components/FormularioAlumna";
 import PoleImage from "../../public/registerphoto.jpeg";
+import { useAuth } from "../context/AuthContext";
+import type { UserData } from "../types"; 
+
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSubmit = async (form: FormFields) => {
     try {
-      // 1. Registrar en Firebase Auth
       const userCredential = await registerWithEmail(form.email, form.password!);
       const uid = userCredential.user.uid;
 
-      // 2. Buscar si ya existe un perfil con ese email
       const q = query(collection(db, "users"), where("email", "==", form.email));
       const snapshot = await getDocs(q);
 
+      const userData: UserData = {
+        uid,
+        email: form.email,
+        displayName: form.nombre,
+        nombre: form.nombre,
+        apellido: form.apellido,
+        edad: Number(form.edad) || null,
+        telefono: form.telefono,
+        direccion: {
+          calle: form.calle,
+          numero: form.numero,
+          ciudad: form.ciudad,
+        },
+        role: "user",
+        cuentaCreada: true,
+        notificacionesActivas: true,
+        puedeAnotarse: false,
+        clasesReservadas: [],
+      };
+
       if (!snapshot.empty) {
-        // 3. Ya existe: actualizar el documento con el nuevo UID y marcar cuenta creada
         const existingDocRef = snapshot.docs[0].ref;
-
-        await setDoc(existingDocRef, {
-          uid,
-          cuentaCreada: true,
-          displayName: form.nombre,
-          nombre: form.nombre,
-          apellido: form.apellido,
-          edad: Number(form.edad),
-          telefono: form.telefono,
-          direccion: {
-            calle: form.calle,
-            numero: form.numero,
-            ciudad: form.ciudad,
-          },
-        }, { merge: true });
-
+        await setDoc(existingDocRef, userData, { merge: true });
         console.log("Perfil existente actualizado con UID de Auth.");
       } else {
-        // 4. No existe: crear nuevo documento
-        await setDoc(doc(db, "users", uid), {
-          uid,
-          cuentaCreada: true,
-          displayName: form.nombre,
-          email: form.email,
-          role: "user",
-          notificacionesActivas: true,
-          clasesReservadas: [],
-          nombre: form.nombre,
-          apellido: form.apellido,
-          edad: Number(form.edad),
-          telefono: form.telefono,
-          direccion: {
-            calle: form.calle,
-            numero: form.numero,
-            ciudad: form.ciudad,
-          },
-        });
-
+        const newDocRef = doc(db, "users", uid);
+        await setDoc(newDocRef, userData);
         console.log("Nuevo perfil creado.");
       }
 
-      // 5. Redirigir al perfil
+      setUser(userData);
       navigate("/perfil");
     } catch (error) {
       console.error("Error en el registro:", error);
-      // Podés mostrar un mensaje de error visual acá
     }
   };
 
