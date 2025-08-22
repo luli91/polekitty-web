@@ -6,6 +6,7 @@ import { collection} from "firebase/firestore";
 import { db } from "../firebase";
 import logo from "../../public/Polekitty-logo-blanco.png";
 import { onSnapshot } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [notis, setNotis] = useState<{ id: string; mensaje: string; leida: boolean }[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const handleLogout = async () => {
     const auth = getAuth();
@@ -46,7 +48,7 @@ const Navbar = () => {
 
 
   return (
-    <div className="w-full bg-gray-950 border-b border-fuchsia-700 shadow-md z-50">
+    <div className="relative z-[1000] w-full bg-gray-950 border-b border-fuchsia-700 shadow-md">
       <nav className="px-6 py-4 flex items-center justify-between">
         {/* Logo + Título */}
         <div
@@ -59,6 +61,8 @@ const Navbar = () => {
 
         {/* Íconos de interacción */}
         <div className="flex items-center gap-4">
+            {user ? (
+          <>
           {/* 🔔 Notificaciones */}
           <div className="relative">
             <FaBell
@@ -78,19 +82,18 @@ const Navbar = () => {
                 </div>
                 {notis.length > 0 ? (
                   notis.map((noti) => (
-  <button
-    key={noti.id}
-    onClick={() => handleNotiClick(noti.id)}
-    className={`px-4 py-2 text-sm w-full text-left break-words ${
-      noti.leida
-        ? "text-gray-400 bg-gray-900"
-        : "text-white hover:bg-gray-700 font-semibold"
-    }`}
-  >
-    🔔 {noti.mensaje}
-  </button>
-))
-
+                <button
+                  key={noti.id}
+                  onClick={() => handleNotiClick(noti.id)}
+                  className={`px-4 py-2 text-sm w-full text-left break-words ${
+                    noti.leida
+                      ? "text-gray-400 bg-gray-900"
+                      : "text-white hover:bg-gray-700 font-semibold"
+                  }`}
+                >
+                  🔔 {noti.mensaje}
+                </button>
+              ))
                 ) : (
                   <p className="px-4 py-2 text-gray-400 text-sm">No hay notificaciones nuevas</p>
                 )}
@@ -138,6 +141,15 @@ const Navbar = () => {
               </div>
             )}
           </div>
+          </>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className="px-4 py-2 bg-fuchsia-600 text-white rounded hover:bg-fuchsia-700 transition"
+            >
+              Iniciar sesión
+            </button>
+          )}
         </div>
       </nav>
     </div>

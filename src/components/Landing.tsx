@@ -7,18 +7,8 @@ export default function Landing() {
   className="w-screen h-[150vh] bg-cover bg-center flex flex-col items-center justify-start text-white px-4 relative overflow-auto hide-scrollbar"
   style={{ backgroundImage: "url('/Florportada.png')" }}
 >
-  {/* Logo + texto */}
+  {/* titulo */}
   <div className="mt-[40px] w-full flex flex-row items-center justify-center z-10 gap-8">
-    {/* Logo */}
-    <motion.img
-      src="/Polekitty-logo-blanco.png"
-      alt="Logo blanco de Polekitty Studio"
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8 }}
-      className="w-20 md:w-28 object-contain"
-    />
-
     {/* Texto */}
     <div className="flex flex-col items-start text-left">
       <motion.h1

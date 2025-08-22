@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import AppLayout from "../layouts/AppLayout"; // 💜 nuevo layout
 import LoginPage from "../pages/LoginPage";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CalendarPage from "../pages/CalendarPage";
@@ -26,30 +27,37 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/gallery" element={<Gallery />} />
+        {/* Rutas públicas con Navbar */}
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route
+            path="/calendario"
+            element={
+              <ProtectedRoute isAllowed={isLoggedIn && !isAdmin}>
+                <CalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute isAllowed={isLoggedIn}>
+                <PerfilPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* Rutas sin Navbar */}
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/registro"
           element={!isLoggedIn ? <RegistroPage /> : <Navigate to="/perfil" />}
         />
-        <Route
-          path="/calendario"
-          element={
-            <ProtectedRoute isAllowed={isLoggedIn && !isAdmin}>
-              <CalendarPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/perfil"
-          element={
-            <ProtectedRoute isAllowed={isLoggedIn}>
-              <PerfilPage />
-            </ProtectedRoute>
-          }
-        />
+
+        {/* Dashboard con layout propio */}
         <Route
           path="/dashboard"
           element={
@@ -70,4 +78,3 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
-
