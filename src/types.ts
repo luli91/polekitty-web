@@ -24,4 +24,8 @@ export interface UserData {
     ciudad: string;
   };
   cuentaCreada?: boolean; 
+    telefonoEmergencia1: {
+    nombre: string;
+    telefono: string;
+  };
 }

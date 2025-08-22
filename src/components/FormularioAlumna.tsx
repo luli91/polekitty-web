@@ -12,6 +12,8 @@ export type FormFields = {
   ciudad: string;
   email: string;
   password?: string;
+    telefonoEmergencia1Nombre: string;
+  telefonoEmergencia1Telefono: string;
 };
 
 interface Props {
@@ -66,7 +68,9 @@ const FormularioAlumna = ({
       numero: "",
       ciudad: "",
       email: "",
-      password: "",
+      password: "",  
+      telefonoEmergencia1Nombre: "",
+    telefonoEmergencia1Telefono: "",
     }
   );
   const [success, setSuccess] = useState(false);

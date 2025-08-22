@@ -1,6 +1,5 @@
 import { useAuth } from "../context/AuthContext";
 import CalendarioMensual from "../components/CalendarioMensual";
-import Navbar from "../components/Navbar";
 import ClasesDisponiblesSemana from "../components/ClasesDisponiblesSemana";
 import ToastMensaje from "../components/ToastMensaje"; 
 import { useState } from "react";
@@ -23,7 +22,6 @@ const CalendarPage = () => {
 
   return (
     <>
-      <Navbar />
       <div className="p-4 md:p-6 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white space-y-6">
         <p className="text-violet-400 text-lg font-semibold text-center">
           ¡Hola {capitalizarNombre(user?.displayName)}! Elegí tu clase favorita y reservá tu lugar con magia Polekitty.
