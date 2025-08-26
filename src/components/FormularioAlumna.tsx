@@ -168,6 +168,9 @@ const FormularioAlumna = ({
         <Input field="calle" value={form.calle} onChange={handleChange} />
         <Input field="numero" value={form.numero} onChange={handleChange} />
         <Input field="ciudad" value={form.ciudad} onChange={handleChange} />
+        <Input field="telefonoEmergencia1Nombre" value={form.telefonoEmergencia1Nombre} onChange={handleChange} />
+        <Input field="telefonoEmergencia1Telefono" value={form.telefonoEmergencia1Telefono} onChange={handleChange} />
+
       </div>
     );
 

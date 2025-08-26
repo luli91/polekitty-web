@@ -22,9 +22,10 @@ export async function ensureUserProfile(user: User): Promise<UserData> {
   const userRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(userRef);
   const isAdmin = user.email === ADMIN_EMAIL;
-console.log("UID recibido:", user.uid);
-console.log("Snapshot existe:", snapshot.exists());
-console.log("Datos del snapshot:", snapshot.data());
+
+  console.log("UID recibido:", user.uid);
+  console.log("Snapshot existe:", snapshot.exists());
+  console.log("Datos del snapshot:", snapshot.data());
 
   if (!snapshot.exists()) {
     const newUser: UserData = {
@@ -33,12 +34,15 @@ console.log("Datos del snapshot:", snapshot.data());
       email: user.email ?? "Sin email",
       role: isAdmin ? "admin" : "user",
       notificacionesActivas: true,
+      puedeAnotarse: false,
       clasesReservadas: [],
       nombre: "",
       apellido: "",
       edad: 0,
       telefono: "",
       direccion: { calle: "", numero: "", ciudad: "" },
+      telefonoEmergencia1: { nombre: "", telefono: "" },
+      cuentaCreada: true,
     };
 
     await setDoc(userRef, newUser);
@@ -81,7 +85,6 @@ export const loginWithGooglePopup = async () => {
         const methods = await fetchSignInMethodsForEmail(auth, email);
 
         if (methods.includes("password")) {
-          // Pedirle al usuario que ingrese su contraseña
           const password = prompt("Ya existe una cuenta con este email. Ingresá tu contraseña para vincular Google:");
           if (!password) throw new Error("Contraseña requerida");
 
@@ -91,7 +94,6 @@ export const loginWithGooglePopup = async () => {
         }
       }
     }
-
     throw error;
   }
 };
