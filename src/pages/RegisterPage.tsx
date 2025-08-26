@@ -44,8 +44,8 @@ const RegisterPage = () => {
           ciudad: form.ciudad,
         },
         telefonoEmergencia1: {
-          nombre: form.telefonoEmergencia1Nombre,
-          telefono: form.telefonoEmergencia1Telefono,
+          nombre: form.telefonoEmergenciaNombre,
+          telefono: form.telefonoEmergenciaTelefono,
         },
         role: "user",
         cuentaCreada: true,

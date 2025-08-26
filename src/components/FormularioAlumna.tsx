@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import ToastMensaje from "./ToastMensaje";
 
 export type FormFields = {
   nombre: string;
@@ -12,8 +13,8 @@ export type FormFields = {
   ciudad: string;
   email: string;
   password?: string;
-    telefonoEmergencia1Nombre: string;
-  telefonoEmergencia1Telefono: string;
+  telefonoEmergenciaNombre: string;
+  telefonoEmergenciaTelefono: string;
 };
 
 interface Props {
@@ -23,21 +24,24 @@ interface Props {
   useStepper?: boolean;
 }
 
-// ✅ COMPONENTE INPUT DEFINIDO FUERA DEL COMPONENTE PRINCIPAL
 const Input = ({
   field,
   value,
   onChange,
   type = "text",
+  label,
+  placeholder,
 }: {
   field: keyof FormFields;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
+  label?: string;
+  placeholder?: string;
 }) => (
   <div>
     <label htmlFor={field} className="block text-fuchsia-300 font-medium mb-1 capitalize">
-      {field}
+       {label || field}
     </label>
     <input
       id={field}
@@ -46,7 +50,7 @@ const Input = ({
       value={value}
       onChange={onChange}
       className="w-full p-3 rounded-lg border border-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 bg-gray-900 text-white placeholder-fuchsia-300"
-      placeholder={`Ingresá tu ${field}`}
+      placeholder={placeholder || `Ingresá tu ${label || field}`}
     />
   </div>
 );
@@ -69,72 +73,69 @@ const FormularioAlumna = ({
       ciudad: "",
       email: "",
       password: "",  
-      telefonoEmergencia1Nombre: "",
-    telefonoEmergencia1Telefono: "",
+      telefonoEmergenciaNombre: "",
+      telefonoEmergenciaTelefono: "",
     }
   );
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [toast, setToast] = useState<{ mensaje: string; tipo: "exito" | "error" | "info" } | null>(null);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((prevForm) => ({
-      ...prevForm,
+    setForm((prev) => ({
+      ...prev,
       [e.target.name as keyof FormFields]: e.target.value,
     }));
+    
+  const showToast = (mensaje: string, tipo: "exito" | "error" | "info" = "info") => {
+    setToast({ mensaje, tipo });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  const nextStep = () => {
+const nextStep = () => {
   if (step === 0) {
     const camposPaso1 = ["nombre", "apellido", "edad", "telefono", "email", ...(includePassword ? ["password"] : [])];
-    const hayVacios = camposPaso1.some((campo) => {
-      const valor = form[campo as keyof FormFields];
-      return !valor || valor.trim() === "";
-    });
+    const vacios = camposPaso1.some((campo) => !form[campo as keyof FormFields]?.trim());
 
-    if (hayVacios) {
-      alert("Por favor, completá todos los campos del paso 1.");
-      return;
-    }
+     if (vacios) {
+        showToast("Por favor, completá todos los datos personales.", "error");
+        return;
+      }
+      if (includePassword && form.password && form.password.length < 6) {
+        showToast("La contraseña debe tener al menos 6 caracteres.", "error");
+        return;
+      }
   }
 
   setStep(step + 1);
 };
 
-  const prevStep = () => setStep(step - 1);
-
   const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
-
-  const campos = Object.entries(form);
-
-  const camposAValidar = useStepper
-    ? step === 0
-      ? campos.filter(([key]) =>
-          ["nombre", "apellido", "edad", "telefono", "email", ...(includePassword ? ["password"] : [])].includes(key)
-        )
-      : campos.filter(([key]) => ["calle", "numero", "ciudad"].includes(key))
-    : campos;
-
-  const hayVacios = camposAValidar.some(([key, valor]) => {
-    if (!includePassword && key === "password") return false;
-    return valor.trim() === "";
-  });
-
-  if (hayVacios) {
-    alert("Por favor, completá todos los campos.");
-    return;
-  }
-
+  // Solo validar todo si estamos en el último paso
   if (useStepper && step === 0) {
-    nextStep();
+    nextStep(); // Avanzar sin validar campos del paso 2
     return;
   }
+  // Validar solo los campos del paso 2
+    const camposPaso2 = [
+      "calle",
+      "numero",
+      "ciudad",
+      "telefonoEmergenciaNombre",
+      "telefonoEmergenciaTelefono"
+    ];
 
-  onSubmit(form);
-  setSuccess(true);
-};
+  const vacios = camposPaso2.some((campo) => !form[campo as keyof FormFields]?.trim());
+    if (vacios) {
+      showToast("Por favor, completá todos los campos.", "error");
+      return;
+    }
+    onSubmit(form);
+    setSuccess(true);
+  };
 
-
-  const renderInputs = () => {
     const paso1 = (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input field="nombre" value={form.nombre} onChange={handleChange} />
@@ -147,6 +148,7 @@ const FormularioAlumna = ({
     <Input
       field="password"
       type={showPassword ? "text" : "password"}
+      label="Contraseña"
       value={form.password || ""}
       onChange={handleChange}
     />
@@ -168,18 +170,29 @@ const FormularioAlumna = ({
         <Input field="calle" value={form.calle} onChange={handleChange} />
         <Input field="numero" value={form.numero} onChange={handleChange} />
         <Input field="ciudad" value={form.ciudad} onChange={handleChange} />
-        <Input field="telefonoEmergencia1Nombre" value={form.telefonoEmergencia1Nombre} onChange={handleChange} />
-        <Input field="telefonoEmergencia1Telefono" value={form.telefonoEmergencia1Telefono} onChange={handleChange} />
-
+        <div className="md:col-span-2 mt-4">
+        <h3 className="text-lg font-semibold text-fuchsia-400 mb-2">Contacto de Emergencia</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            field="telefonoEmergenciaNombre"
+            label="Nombre"
+            value={form.telefonoEmergenciaNombre}
+            onChange={handleChange}
+          />
+          <Input
+            field="telefonoEmergenciaTelefono"
+            label="Teléfono"
+            value={form.telefonoEmergenciaTelefono}
+            onChange={handleChange}
+          />
+        </div>
       </div>
-    );
+    </div>
+  );
 
-    if (!useStepper) return <>{paso1}{paso2}</>;
-    return step === 0 ? paso1 : paso2;
-  };
-
-  return (
+   return (
     <div className="h-screen flex items-center justify-center bg-gray-950 text-white p-4">
+      {toast && <ToastMensaje mensaje={toast.mensaje} tipo={toast.tipo} onClose={() => setToast(null)} />}
       {success ? (
         <div className="bg-gray-800 p-6 rounded-xl shadow-2xl text-center max-w-md w-full border border-fuchsia-600">
           <FaCheckCircle className="text-4xl text-fuchsia-400 mx-auto mb-4 animate-bounce" />
@@ -191,72 +204,52 @@ const FormularioAlumna = ({
           onSubmit={handleSubmit}
           className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-fuchsia-600"
         >
-          <h2 className="text-3xl font-bold mb-6 text-violet-400 text-center tracking-wide">
-            Registro de Alumna
-          </h2>
-
+          <h2 className="text-3xl font-bold mb-6 text-violet-400 text-center">Registro de Alumna</h2>
           {useStepper && (
             <div className="flex items-center justify-between mb-6">
-              <div className="flex-1 flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                  step === 0 ? "bg-fuchsia-600 text-white" : "bg-gray-700 text-gray-300"
-                }`}>
-                  1
+              {[0, 1].map((i) => (
+                <div key={i} className={`flex-1 flex items-center ${i === 1 ? "justify-end" : ""}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                    step === i ? "bg-fuchsia-600 text-white" : "bg-gray-700 text-gray-300"
+                  }`}>
+                    {i + 1}
+                  </div>
+                  <span className={`ml-2 text-sm ${step === i ? "text-fuchsia-400" : "text-gray-400"}`}>
+                    {i === 0 ? "Datos personales" : "Dirección"}
+                  </span>
                 </div>
-                <span className={`ml-2 text-sm ${
-                  step === 0 ? "text-fuchsia-400" : "text-gray-400"
-                }`}>
-                  Datos personales
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-end">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                  step === 1 ? "bg-violet-600 text-white" : "bg-gray-700 text-gray-300"
-                }`}>
-                  2
-                </div>
-                <span className={`ml-2 text-sm ${
-                  step === 1 ? "text-violet-400" : "text-gray-400"
-                }`}>
-                  Dirección
-                </span>
-              </div>
+              ))}
             </div>
           )}
 
-          {renderInputs()}
+          {useStepper ? (step === 0 ? paso1 : paso2) : (<>{paso1}{paso2}</>)}
 
           <div className="flex justify-between mt-6">
-  {useStepper && step > 0 && (
-    <button
-      type="button"
-      onClick={prevStep}
-      className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600"
-    >
-      Atrás
-    </button>
-  )}
-  {useStepper && step < 1 ? (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault(); 
-        nextStep();
-      }}
-      className="bg-fuchsia-600 px-4 py-2 rounded hover:bg-fuchsia-500 transition flex items-center gap-2"
-    >
-      Siguiente
-    </button>
-  ) : (
-    <button
-      type="submit"
-      className="bg-violet-600 px-4 py-2 rounded hover:bg-violet-500 transition flex items-center gap-2 group"
-    >
-      <span>Registrarme</span>
-      <FaCheckCircle className="text-white opacity-0 group-hover:opacity-100 transition duration-300" />
-    </button>
-  )}
-</div>
+            {useStepper && step > 0 && (
+              <button type="button" onClick={() => setStep(step - 1)} className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">
+                Atrás
+              </button>
+            )}
+            {useStepper && step === 0 && (
+              <button
+                type="button"
+                onClick={nextStep}
+                className="bg-fuchsia-600 px-4 py-2 rounded hover:bg-fuchsia-500"
+              >
+                Siguiente
+              </button>
+            )}
+
+            {useStepper && step === 1 && (
+              <button
+                type="submit"
+                className="bg-violet-600 px-4 py-2 rounded hover:bg-violet-500 flex items-center gap-2"
+              >
+                <span>Registrarme</span>
+                <FaCheckCircle className="text-white opacity-0 group-hover:opacity-100 transition" />
+              </button>
+            )}
+          </div>
         </form>
       )}
     </div>

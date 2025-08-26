@@ -26,7 +26,7 @@ export default function Landing() {
         transition={{ delay: 0.4, duration: 0.8 }}
         className="text-lg md:text-2xl mb-4 max-w-xl self-center text-center"
       >
-        Donde el cuerpo habla, la música guía y la sensualidad florece.
+        Clases de Pole sport , Pole exotic , floorwork
       </motion.p>
     </div>
   </div>
