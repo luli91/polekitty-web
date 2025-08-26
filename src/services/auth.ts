@@ -8,67 +8,54 @@ import {
   fetchSignInMethodsForEmail,
   type User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import type { UserData } from "../types";
 
-const ADMIN_EMAIL = "florencia@polekitty.com";
 
 export const registerWithEmail = async (email: string, password: string) => {
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
-export async function ensureUserProfile(user: User): Promise<UserData> {
+export async function ensureUserProfile(user: User): Promise<UserData | null> {
   const userRef = doc(db, "users", user.uid);
   const snapshot = await getDoc(userRef);
-  const isAdmin = user.email === ADMIN_EMAIL;
 
-  console.log("UID recibido:", user.uid);
-  console.log("Snapshot existe:", snapshot.exists());
-  console.log("Datos del snapshot:", snapshot.data());
+  if (!snapshot.exists()) return null;
 
-  if (!snapshot.exists()) {
-    const newUser: UserData = {
-      uid: user.uid,
-      displayName: user.displayName ?? "Sin nombre",
-      email: user.email ?? "Sin email",
-      role: isAdmin ? "admin" : "user",
-      notificacionesActivas: true,
-      puedeAnotarse: false,
-      clasesReservadas: [],
-      nombre: "",
-      apellido: "",
-      edad: 0,
-      telefono: "",
-      direccion: { calle: "", numero: "", ciudad: "" },
-      telefonoEmergencia1: { nombre: "", telefono: "" },
-      cuentaCreada: true,
-    };
-
-    await setDoc(userRef, newUser);
-    return newUser;
-  } else {
-    return snapshot.data() as UserData;
-  }
+  return snapshot.data() as UserData;
 }
+
 
 export async function loginWithEmail(email: string, password: string): Promise<UserData> {
   const result = await signInWithEmailAndPassword(auth, email, password);
-  return await ensureUserProfile(result.user);
+  const userData = await ensureUserProfile(result.user);
+
+  if (!userData) throw new Error("Usuario no registrado en Firestore");
+
+  return userData;
 }
 
 export async function loginWithGoogle(): Promise<UserData> {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
-  return await ensureUserProfile(result.user);
+  const userData = await ensureUserProfile(result.user);
+
+  if (!userData) throw new Error("Usuario no registrado en Firestore");
+
+  return userData;
 }
+
 
 export const handleGoogleRedirectResult = async (): Promise<UserData | null> => {
   const result = await getRedirectResult(auth);
   const user = result?.user;
   if (!user) return null;
-  return await ensureUserProfile(user);
+
+  const userData = await ensureUserProfile(user);
+  return userData;
 };
+
 
 export const loginWithGooglePopup = async () => {
   const provider = new GoogleAuthProvider();

@@ -16,6 +16,18 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const verificarRegistroCompleto = async (uid: string) => {
+  const userRef = doc(db, "users", uid);
+  const flagRef = doc(db, "userFlags", uid);
+
+  const [userSnap, flagSnap] = await Promise.all([
+    getDoc(userRef),
+    getDoc(flagRef),
+  ]);
+
+  return userSnap.exists() && flagSnap.exists();
+};
+
   useEffect(() => {
     const checkRedirectResult = async () => {
       try {
@@ -49,10 +61,17 @@ const LoginPage = () => {
     }
   };
 
-    const handleGoogleLogin = async () => {
+   const handleGoogleLogin = async () => {
   try {
     const user = await loginWithGooglePopup();
     if (!user) return;
+
+    const registroCompleto = await verificarRegistroCompleto(user.uid);
+
+    if (!registroCompleto) {
+      setErrorMessage("Necesitás completar tu registro antes de ingresar.");
+      return;
+    }
 
     const userRef = doc(db, "users", user.uid);
     const snapshot = await getDoc(userRef);
@@ -61,7 +80,7 @@ const LoginPage = () => {
     role === "admin" ? navigate("/dashboard") : navigate("/perfil");
   } catch (error) {
     console.error("Error al iniciar sesión con Google:", error);
-    alert("No se pudo iniciar sesión con Google.");
+    setErrorMessage("No se pudo iniciar sesión con Google.");
   }
 };
 
