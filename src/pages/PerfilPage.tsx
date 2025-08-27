@@ -76,7 +76,7 @@ const PerfilPage = () => {
     fetchClasesReservadas();
   }, [user]);
 
-  if (!user) return <div className="text-white">Cargando perfil...</div>;
+    if (!user) return <div className="text-white">Cargando perfil...</div>;
 
   return (
     <>
@@ -90,83 +90,107 @@ const PerfilPage = () => {
         </div>
 
         {/* Layout principal */}
-<div className="bg-gray-900 rounded-2xl shadow-xl p-4 w-full max-w-6xl flex flex-col lg:flex-row gap-6">
-  {/* Mobile: acordeón */}
-  <div className="lg:hidden w-full">
-    <PerfilAccordionMobile
-      user={user}
-      clasesValidas={clasesValidas}
-      handleGuardarCampo={handleGuardarCampo}
-    />
-  </div>
+        <div className="bg-gray-900 rounded-2xl shadow-xl p-4 w-full max-w-6xl flex flex-col lg:flex-row gap-6">
+        {/* Mobile: acordeón */}
+        <div className="lg:hidden w-full">
+          <PerfilAccordionMobile
+            user={user}
+            clasesValidas={clasesValidas}
+            handleGuardarCampo={handleGuardarCampo}
+          />
+        </div>
 
-  {/* Desktop: menú lateral + panel dinámico */}
-  <MenuDesktop
-    seccionActiva={seccionActiva}
-    setSeccionActiva={setSeccionActiva}
-  />
+        {/* Desktop: menú lateral + panel dinámico */}
+          <MenuDesktop
+            seccionActiva={seccionActiva}
+            setSeccionActiva={setSeccionActiva}
+          />
 
-  <div className="hidden lg:flex lg:w-3/4 flex-col gap-6">
-    {seccionActiva === "clases" && (
-      <SeccionSecundaria titulo="Clases reservadas">
-        {clasesValidas.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {clasesValidas.map((clase, index) => (
-              <div
-  key={index}
-  className="bg-gradient-to-br from-violet-800 to-gray-900 rounded-xl p-4 shadow-lg border-l-4 border-violet-500 hover:scale-[1.02] hover:shadow-xl transition"
->
-  <div className="flex items-center gap-2 mb-2">
-    <span className="text-fuchsia-400 text-xl">📅</span>
-    <p className="text-lg font-semibold text-white">{clase.fecha}</p>
-  </div>
-  <p className="text-sm text-gray-300 mb-2">
-    {clase.hora} — {clase.nivel}
-  </p>
-  <button
-    onClick={() => navigate("/calendario")}
-    className="px-3 py-1 bg-violet-600 text-white rounded-full hover:bg-fuchsia-700 transition text-sm w-fit"
-  >
-    Ver detalles
-  </button>
-</div>
-
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <p>No tenés clases anotadas todavía.</p>
-            <button
-              onClick={() => navigate("/calendario")}
-              className="px-4 py-2 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition"
-            >
-              Ver próximas clases
-            </button>
-          </div>
-        )}
-      </SeccionSecundaria>
-    )}
+        <div className="hidden lg:flex lg:w-3/4 flex-col gap-6">
+          {seccionActiva === "clases" && (
+            <SeccionSecundaria titulo="Clases reservadas">
+              {clasesValidas.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {clasesValidas.map((clase, index) => (
+                    <div
+                      key={index}
+                      className="bg-gradient-to-br from-violet-800 to-gray-900 rounded-xl p-4 shadow-lg border-l-4 border-violet-500 hover:scale-[1.02] hover:shadow-xl transition"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-fuchsia-400 text-xl">📅</span>
+                        <p className="text-lg font-semibold text-white">{clase.fecha}</p>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-2">
+                        {clase.hora} — {clase.nivel}
+                      </p>
+                      <button
+                        onClick={() => navigate("/calendario")}
+                        className="px-3 py-1 bg-violet-600 text-white rounded-full hover:bg-fuchsia-700 transition text-sm w-fit"
+                      >
+                      Ver detalles
+                      </button>
+                    </div>  
+                  ))
+                  }
+              </div>
+              ) : (
+                <div className="space-y-2">
+                  <p>No tenés clases anotadas todavía.</p>
+                  <button
+                    onClick={() => navigate("/calendario")}
+                    className="px-4 py-2 bg-fuchsia-600 text-white rounded-full hover:bg-fuchsia-700 transition"
+                  >
+                    Ver próximas clases
+                  </button>
+                </div>
+              )}
+            </SeccionSecundaria>
+          )}
 
             {seccionActiva === "datos personales" && (
               <SeccionSecundaria titulo="Datos personales">
-                <ul className="space-y-4">
-                <CampoEditable label="Nombre" campo="nombre" valor={user.nombre} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Apellido" campo="apellido" valor={user.apellido} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Edad" campo="edad" valor={String(user.edad)} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Email" campo="email" valor={user.email} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Teléfono personal" campo="telefono" valor={user.telefono} onGuardar={handleGuardarCampo} />
-                </ul>
+                <div className="flex flex-col space-y-4 w-full list-none">
+                  {/* Fila 1: Nombre, Apellido, Edad */}
+                  <div className="flex flex-col md:flex-row gap-4 w-full">
+                   <div className="flex-[2] list-none">
+                      <CampoEditable label="Nombre" campo="nombre" valor={user.nombre} onGuardar={handleGuardarCampo} />
+                    </div>
+                    <div className="flex-[2] list-none">
+                      <CampoEditable label="Apellido" campo="apellido" valor={user.apellido} onGuardar={handleGuardarCampo} />
+                    </div>
+                    <div className="flex-[1] list-none">
+                      <CampoEditable label="Edad" campo="edad" valor={String(user.edad)} onGuardar={handleGuardarCampo} />
+                    </div>
+                  </div>
+
+                  {/* Fila 2: Calle, Número */}
+                  <div className="flex flex-col md:flex-row gap-4 w-full">
+                    <div className="flex-1 list-none">
+                      <CampoEditable label="Calle" campo="direccion.calle" valor={user.direccion?.calle || ""} onGuardar={handleGuardarCampo} />
+                    </div>
+                    <div className="flex-1 list-none">
+                      <CampoEditable label="Número" campo="direccion.numero" valor={user.direccion?.numero || ""} onGuardar={handleGuardarCampo} />
+                    </div>
+                  </div>
+
+                  {/* Fila 3: Ciudad */}
+                  <div className="w-full list-none">
+                    <CampoEditable label="Ciudad" campo="direccion.ciudad" valor={user.direccion?.ciudad || ""} onGuardar={handleGuardarCampo} />
+                  </div>
+                </div>
               </SeccionSecundaria>
             )}
 
             {seccionActiva === "contacto" && (
               <SeccionSecundaria titulo="Contacto">
                 <ul className="space-y-4">
-                <CampoEditable label="Nombre contacto de emergencia" campo="telefonoEmergencia1.nombre" valor={user.telefonoEmergencia1?.nombre || ""} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Teléfono de emergencia" campo="telefonoEmergencia1.telefono" valor={user.telefonoEmergencia1?.telefono || ""} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Calle" campo="direccion.calle" valor={user.direccion?.calle || ""} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Número" campo="direccion.numero" valor={user.direccion?.numero || ""} onGuardar={handleGuardarCampo} />
-                <CampoEditable label="Ciudad" campo="direccion.ciudad" valor={user.direccion?.ciudad || ""} onGuardar={handleGuardarCampo} />
+                  <CampoEditable label="Email" campo="email" valor={user.email} onGuardar={handleGuardarCampo} />
+                  <CampoEditable label="Teléfono personal" campo="telefono" valor={user.telefono} onGuardar={handleGuardarCampo} />
+                </ul>
+                <h2 className="mt-6">Contacto de emergencia</h2>
+                <ul className="space-y-4 mt-2">
+                  <CampoEditable label="Nombre contacto de emergencia" campo="telefonoEmergencia1.nombre" valor={user.telefonoEmergencia1?.nombre || ""} onGuardar={handleGuardarCampo} />
+                  <CampoEditable label="Teléfono de emergencia" campo="telefonoEmergencia1.telefono" valor={user.telefonoEmergencia1?.telefono || ""} onGuardar={handleGuardarCampo} />                
               </ul>
               </SeccionSecundaria>
             )}
@@ -176,18 +200,18 @@ const PerfilPage = () => {
                 <ul className="space-y-4">
                   {eventosDisponibles.map((evento, index) => (
                     <li
-      key={index}
-      className="bg-gradient-to-br from-violet-800 to-gray-900 rounded-xl p-4 shadow-lg border-l-4 border-violet-500 hover:scale-[1.02] hover:shadow-xl transition"
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-violet-300 text-xl">🎉</span>
-        <p className="text-white font-semibold text-lg">{evento.nombre}</p>
-      </div>
-      <p className="text-sm text-gray-300 mb-3">📅 Fecha: {evento.fecha}</p>
-      <button className="px-4 py-2 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition text-sm w-fit">
-        Quiero participar
-      </button>
-    </li>
+                      key={index}
+                      className="bg-gradient-to-br from-violet-800 to-gray-900 rounded-xl p-4 shadow-lg border-l-4 border-violet-500 hover:scale-[1.02] hover:shadow-xl transition"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-violet-300 text-xl">🎉</span>
+                        <p className="text-white font-semibold text-lg">{evento.nombre}</p>
+                      </div>
+                      <p className="text-sm text-gray-300 mb-3">📅 Fecha: {evento.fecha}</p>
+                      <button className="px-4 py-2 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition text-sm w-fit">
+                        Quiero participar
+                      </button>
+                    </li>
                   ))}
                 </ul>
               </SeccionSecundaria>
