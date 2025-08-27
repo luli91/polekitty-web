@@ -14,6 +14,12 @@ import type { UserData } from "../types";
 
 
 export const registerWithEmail = async (email: string, password: string) => {
+  const methods = await fetchSignInMethodsForEmail(auth, email);
+
+  if (methods.length > 0) {
+    throw new Error("email-ya-registrado");
+  }
+
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
@@ -36,33 +42,17 @@ export async function loginWithEmail(email: string, password: string): Promise<U
   return userData;
 }
 
-export async function loginWithGoogle(): Promise<UserData> {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const userData = await ensureUserProfile(result.user);
-
-  if (!userData) throw new Error("Usuario no registrado en Firestore");
-
-  return userData;
-}
-
-
-export const handleGoogleRedirectResult = async (): Promise<UserData | null> => {
-  const result = await getRedirectResult(auth);
-  const user = result?.user;
-  if (!user) return null;
-
-  const userData = await ensureUserProfile(user);
-  return userData;
-};
-
-
-export const loginWithGooglePopup = async () => {
+export async function loginWithGoogle(): Promise<UserData | "registro-incompleto"> {
   const provider = new GoogleAuthProvider();
 
   try {
     const result = await signInWithPopup(auth, provider);
-    return result.user;
+    const user = result.user;
+
+    const userData = await ensureUserProfile(user);
+    if (!userData) return "registro-incompleto";
+
+    return userData;
   } catch (error: any) {
     if (error.code === "auth/account-exists-with-different-credential") {
       const email = error.customData?.email;
@@ -72,15 +62,29 @@ export const loginWithGooglePopup = async () => {
         const methods = await fetchSignInMethodsForEmail(auth, email);
 
         if (methods.includes("password")) {
-          const password = prompt("Ya existe una cuenta con este email. Ingresá tu contraseña para vincular Google:");
+          const password = prompt("Ya tenés cuenta con email. Ingresá tu contraseña para vincular Google:");
           if (!password) throw new Error("Contraseña requerida");
 
           const emailUser = await signInWithEmailAndPassword(auth, email, password);
           await linkWithCredential(emailUser.user, pendingCred);
-          return emailUser.user;
+
+          const userData = await ensureUserProfile(emailUser.user);
+          if (!userData) return "registro-incompleto";
+
+          return userData;
         }
       }
     }
+
     throw error;
   }
+}
+
+export const handleGoogleRedirectResult = async (): Promise<UserData | null> => {
+  const result = await getRedirectResult(auth);
+  const user = result?.user;
+  if (!user) return null;
+
+  const userData = await ensureUserProfile(user);
+  return userData;
 };

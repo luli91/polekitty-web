@@ -19,7 +19,7 @@ export type FormFields = {
 
 interface Props {
   initialData?: FormFields;
-  onSubmit: (form: FormFields) => void;
+  onSubmit: (form: FormFields) => Promise<{ ok: boolean; error?: string }>;
   includePassword?: boolean;
   useStepper?: boolean;
 }
@@ -77,7 +77,7 @@ const FormularioAlumna = ({
       telefonoEmergenciaTelefono: "",
     }
   );
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState<{ mensaje: string; tipo: "exito" | "error" | "info" } | null>(null);
 
@@ -111,8 +111,9 @@ const nextStep = () => {
   setStep(step + 1);
 };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+  setSuccess(null);
   // Solo validar todo si estamos en el último paso
   if (useStepper && step === 0) {
     nextStep(); // Avanzar sin validar campos del paso 2
@@ -132,8 +133,14 @@ const nextStep = () => {
       showToast("Por favor, completá todos los campos.", "error");
       return;
     }
-    onSubmit(form);
-    setSuccess(true);
+    const resultado = await onSubmit(form); 
+
+    if (resultado.ok) {
+      setSuccess(true);
+    } else {
+      showToast(resultado.error || "Error al registrar.", "error");
+      setSuccess(false); 
+    }
   };
 
     const paso1 = (
@@ -193,7 +200,7 @@ const nextStep = () => {
    return (
     <div className="h-screen flex items-center justify-center bg-gray-950 text-white p-4">
       {toast && <ToastMensaje mensaje={toast.mensaje} tipo={toast.tipo} onClose={() => setToast(null)} />}
-      {success ? (
+      {success === true ? (
         <div className="bg-gray-800 p-6 rounded-xl shadow-2xl text-center max-w-md w-full border border-fuchsia-600">
           <FaCheckCircle className="text-4xl text-fuchsia-400 mx-auto mb-4 animate-bounce" />
           <h2 className="text-2xl font-bold mb-2 text-fuchsia-400">¡Registro exitoso!</h2>

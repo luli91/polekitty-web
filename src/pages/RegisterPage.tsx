@@ -9,27 +9,36 @@ import PoleImage from "../../public/registerphoto.jpeg";
 import { useAuth } from "../context/AuthContext";
 import type { UserData } from "../types";
 import { crearUserFlags } from "../services/userFlagsService";
+import { useLocation } from "react-router-dom";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const [error, setError] = useState("");
+  const location = useLocation();
+  const datosGoogle = location.state || {};
 
   const handleSubmit = async (form: FormFields) => {
     setError("");
 
-    // 1️⃣ Validación de contraseña antes de llamar a Firebase
-    if (!form.password || form.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
-      return;
+    const uidDesdeGoogle = datosGoogle.uid;
+
+     try {
+    let uid: string;
+
+    if (uidDesdeGoogle) {
+      // Ya está autenticada por Google, no crear usuario en Auth
+      uid = uidDesdeGoogle;
+    } else {
+      // Registro tradicional
+      if (!form.password || form.password.length < 6) {
+        return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
+      }
+
+      const userCredential = await registerWithEmail(form.email, form.password);
+      uid = userCredential.user.uid;
     }
 
-    try {
-      // 2️⃣ Crear usuario en Auth
-      const userCredential = await registerWithEmail(form.email, form.password);
-      const uid = userCredential.user.uid;
-
-      // 3️⃣ Datos del usuario a guardar en Firestore
       const userData: UserData = {
         uid,
         email: form.email,
@@ -54,25 +63,26 @@ const RegisterPage = () => {
         clasesReservadas: [],
       };
 
-      // 4️⃣ Guardar usuario en /users/{uid}
       await setDoc(doc(db, "users", uid), userData);
-
-      // 5️⃣ Crear userFlags en /userFlags/{uid}
       await crearUserFlags(uid);
 
-      // 6️⃣ Setear usuario en contexto y navegar
+    
       setUser(userData);
       navigate("/perfil");
+
+      return { ok: true };
     } catch (error: any) {
-      console.error("Error en el registro:", error);
-      if (error.code === "auth/weak-password") {
-        setError("La contraseña es demasiado débil (mínimo 6 caracteres).");
-      } else if (error.code === "auth/email-already-in-use") {
-        setError("Este correo ya está registrado.");
-      } else {
-        setError("Error al registrar usuario. Intenta nuevamente.");
-      }
-    }
+  console.error("Error en el registro:", error);
+
+  if (error.code === "auth/email-already-in-use") {
+    return {
+      ok: false,
+      error: "Este email ya está registrado. ¿Querés iniciar sesión con Google?",
+    };
+  }
+
+  return { ok: false, error: "No se pudo completar el registro." };
+}
   };
 
   return (

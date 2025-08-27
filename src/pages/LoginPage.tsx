@@ -1,38 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  loginWithEmail,
-  loginWithGooglePopup,
-  handleGoogleRedirectResult,
-} from "../services/auth";
+import { loginWithEmail, loginWithGoogle, handleGoogleRedirectResult } from "../services/auth";
 import { FcGoogle } from "react-icons/fc";
 import PoleImage from "../../public/loginphoto.jpeg";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { auth } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth(); // ← conexión con el contexto
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  const verificarRegistroCompleto = async (uid: string) => {
-  const userRef = doc(db, "users", uid);
-  const flagRef = doc(db, "userFlags", uid);
-
-  const [userSnap, flagSnap] = await Promise.all([
-    getDoc(userRef),
-    getDoc(flagRef),
-  ]);
-
-  return userSnap.exists() && flagSnap.exists();
-};
 
   useEffect(() => {
     const checkRedirectResult = async () => {
       try {
         const user = await handleGoogleRedirectResult();
         if (user) {
+          setUser(user);
           user.role === "admin" ? navigate("/dashboard") : navigate("/perfil");
         }
       } catch (error) {
@@ -46,43 +32,45 @@ const LoginPage = () => {
   const handleEmailLogin = async () => {
     try {
       const userData = await loginWithEmail(email, password);
+      setUser(userData);
       const role = userData.role || "user";
       role === "admin" ? navigate("/dashboard") : navigate("/perfil");
       setErrorMessage("");
     } catch (error: any) {
       console.error("Error al iniciar sesión con email:", error.code, error.message);
       if (error.code === "auth/user-not-found") {
-      setErrorMessage("No encontramos tu cuenta. ¿Querés registrarte primero?");
-    } else if (error.code === "auth/wrong-password") {
-      setErrorMessage("La contraseña no es correcta.");
-    } else {
-      setErrorMessage("No se pudo iniciar sesión. Verificá tu email y contraseña.");
-    }
+        setErrorMessage("No encontramos tu cuenta. ¿Querés registrarte primero?");
+      } else if (error.code === "auth/wrong-password") {
+        setErrorMessage("La contraseña no es correcta.");
+      } else {
+        setErrorMessage("No se pudo iniciar sesión. Verificá tu email y contraseña.");
+      }
     }
   };
 
-   const handleGoogleLogin = async () => {
-  try {
-    const user = await loginWithGooglePopup();
-    if (!user) return;
+  const handleGoogleLogin = async () => {
+    try {
+      const resultado = await loginWithGoogle();
 
-    const registroCompleto = await verificarRegistroCompleto(user.uid);
+      if (resultado === "registro-incompleto") {
+        navigate("/registro", {
+          state: {
+            uid: auth.currentUser?.uid,
+            email: auth.currentUser?.email,
+            nombre: auth.currentUser?.displayName || "",
+          },
+        });
+        return;
+      }
 
-    if (!registroCompleto) {
-      setErrorMessage("Necesitás completar tu registro antes de ingresar.");
-      return;
+      setUser(resultado);
+      const role = resultado.role || "user";
+      role === "admin" ? navigate("/dashboard") : navigate("/perfil");
+    } catch (error) {
+      console.error("Error al iniciar sesión con Google:", error);
+      setErrorMessage("No se pudo iniciar sesión con Google.");
     }
-
-    const userRef = doc(db, "users", user.uid);
-    const snapshot = await getDoc(userRef);
-    const role = snapshot.data()?.role || "user";
-
-    role === "admin" ? navigate("/dashboard") : navigate("/perfil");
-  } catch (error) {
-    console.error("Error al iniciar sesión con Google:", error);
-    setErrorMessage("No se pudo iniciar sesión con Google.");
-  }
-};
+  };
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-900 text-white font-sans">
