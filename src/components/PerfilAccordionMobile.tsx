@@ -92,8 +92,9 @@ const PerfilAccordionMobile = ({ user, clasesValidas, handleGuardarCampo }: Prop
                     <CampoEditable label="Nombre" campo="nombre" valor={user.nombre} onGuardar={handleGuardarCampo} />
                     <CampoEditable label="Apellido" campo="apellido" valor={user.apellido} onGuardar={handleGuardarCampo} />
                     <CampoEditable label="Edad" campo="edad" valor={String(user.edad)} onGuardar={handleGuardarCampo} />
-                    <CampoEditable label="Email" campo="email" valor={user.email} onGuardar={handleGuardarCampo} />
-                    <CampoEditable label="Teléfono" campo="telefono" valor={user.telefono} onGuardar={handleGuardarCampo} />
+                    <CampoEditable label="Calle" campo="direccion.calle" valor={user.direccion?.calle || ""} onGuardar={handleGuardarCampo} />
+                    <CampoEditable label="Número" campo="direccion.numero" valor={user.direccion?.numero || ""} onGuardar={handleGuardarCampo} />
+                    <CampoEditable label="Ciudad" campo="direccion.ciudad" valor={user.direccion?.ciudad || ""} onGuardar={handleGuardarCampo} />
                 </ul>
             </SeccionSecundaria>
           </div>
@@ -108,7 +109,7 @@ const PerfilAccordionMobile = ({ user, clasesValidas, handleGuardarCampo }: Prop
         >
           <span className="flex items-center gap-2">
             <FaPhoneAlt className="text-fuchsia-400" />
-            Contacto de emergencia
+            Contacto
           </span>
           {abierta === "contacto" ? <FaChevronUp /> : <FaChevronDown />}
         </button>
@@ -116,11 +117,12 @@ const PerfilAccordionMobile = ({ user, clasesValidas, handleGuardarCampo }: Prop
           <div className="px-4 pb-4 pt-2 text-sm text-gray-300">
             <SeccionSecundaria titulo="">
                 <ul className="space-y-4">
+                    <CampoEditable label="Email" campo="email" valor={user.email} onGuardar={handleGuardarCampo} />
+                    <CampoEditable label="Teléfono" campo="telefono" valor={user.telefono} onGuardar={handleGuardarCampo} />
+                    <h3 className="text-fuchsia-400 font-semibold pt-4">📞 Contacto de emergencia</h3>
                     <CampoEditable label="Nombre contacto" campo="telefonoEmergencia1.nombre" valor={user.telefonoEmergencia1?.nombre || ""} onGuardar={handleGuardarCampo} />
                     <CampoEditable label="Teléfono contacto" campo="telefonoEmergencia1.telefono" valor={user.telefonoEmergencia1?.telefono || ""} onGuardar={handleGuardarCampo} />
-                    <CampoEditable label="Calle" campo="direccion.calle" valor={user.direccion?.calle || ""} onGuardar={handleGuardarCampo} />
-                    <CampoEditable label="Número" campo="direccion.numero" valor={user.direccion?.numero || ""} onGuardar={handleGuardarCampo} />
-                    <CampoEditable label="Ciudad" campo="direccion.ciudad" valor={user.direccion?.ciudad || ""} onGuardar={handleGuardarCampo} />
+                    
                 </ul>
             </SeccionSecundaria>
           </div>

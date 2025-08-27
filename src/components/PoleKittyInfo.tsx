@@ -25,9 +25,9 @@ const PoleKittyInfo = () => (
     <div className="h-[1px] bg-gradient-to-r from-fuchsia-500 via-violet-500 to-fuchsia-500 opacity-40" />
     <h3 className="text-violet-400 font-bold text-lg mt-2"> Datos de pago</h3> 
     <p className="text-xs"> 
-      Alias: <span className="blur-sm">exopole</span><br />
-      Número: <span className="blur-sm">114142-9761</span><br /> 
-      Dirección: <span className="blur-sm">Avenida Crovara 1520, Villa Madero</span><br />
+      Alias: exopole<br />
+      Número: 11 4142-9761<br />
+      Dirección: Avenida Crovara 1520, Villa Madero<br />
     </p> 
   </div>
 );

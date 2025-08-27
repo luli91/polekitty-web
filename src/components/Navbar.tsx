@@ -35,24 +35,28 @@ const Navbar = () => {
 
   return (
     <div className="relative z-[1000] w-full bg-gray-950 border-b border-fuchsia-700 shadow-md">
-      <nav className="px-6 py-4 flex items-center justify-between">
-        {/* Logo + Título */}
+      <nav className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        {/*  Logo + Título ajustado para mobile */}
         <div
-          className="flex items-center gap-3 cursor-pointer hover:text-fuchsia-300 transition"
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:text-fuchsia-300 transition pl-2"
           onClick={() => navigate("/")}
         >
-          <img src={logo} alt="Polekitty logo" className="h-20 w-20 object-contain" />
-          <span className="text-fuchsia-400 font-bold text-xl">Polekitty</span>
+          <img
+            src={logo}
+            alt="Polekitty logo"
+            className="h-12 w-12 sm:h-20 sm:w-20 object-contain transition-transform hover:scale-105"
+          />
+          <span className="text-fuchsia-400 font-bold text-lg sm:text-xl">Polekitty</span>
         </div>
 
         {/* Íconos de interacción */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           {user ? (
             <>
-              {/* 🔔 Notificaciones */}
+              {/*  Notificaciones */}
               <div className="relative">
                 <FaBell
-                  className="text-2xl text-fuchsia-300 cursor-pointer hover:text-fuchsia-400 transition"
+                  className="text-xl sm:text-2xl text-fuchsia-300 cursor-pointer hover:text-fuchsia-400 transition"
                   onClick={() => {
                     setNotiMenuOpen(!notiMenuOpen);
                     setUserMenuOpen(false);
@@ -62,7 +66,7 @@ const Navbar = () => {
                   <span className="absolute top-0 right-0 h-2 w-2 bg-fuchsia-500 rounded-full animate-ping"></span>
                 )}
                 {notiMenuOpen && (
-                  <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg py-2 w-72 border border-fuchsia-700">
+                  <div className="absolute right-2 sm:right-0 mt-2 bg-gray-800 rounded-lg shadow-lg py-2 w-[60vw] sm:w-[90vw] sm:max-w-sm max-w-xs border border-fuchsia-700 transition-all duration-200 ease-out">
                     <div className="px-4 py-2 text-white text-sm border-b border-fuchsia-600 font-semibold">
                       Notificaciones recientes
                     </div>
@@ -87,17 +91,17 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* 👤 Menú de usuario */}
+              {/*  Menú de usuario */}
               <div className="relative">
                 <FaUserCircle
-                  className="text-3xl text-fuchsia-300 cursor-pointer hover:text-fuchsia-400 transition"
+                  className="text-2xl sm:text-3xl text-fuchsia-300 cursor-pointer hover:text-fuchsia-400 transition"
                   onClick={() => {
                     setUserMenuOpen(!userMenuOpen);
                     setNotiMenuOpen(false);
                   }}
                 />
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg py-2 w-56 border border-fuchsia-700">
+                  <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg py-2 w-[45vw] sm:w-56 max-w-xs border border-fuchsia-700">
                     {mostrarPerfil && (
                       <button
                         onClick={() => navigate("/perfil")}
