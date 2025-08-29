@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import ModalReservaClase from "./ModalReservaClase";
+import { useAuth } from "../context/AuthContext";
+import AvisoPago from "./AvisoPago";
 
 const diasPermitidos = ["Wednesday", "Friday", "Saturday"];
 const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -15,7 +17,9 @@ const CalendarioMensual = ({
   const [loading, setLoading] = useState(true);
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
   const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
-
+  const [usuario, setUsuario] = useState<any>(null);
+  const [mostrarAviso, setMostrarAviso] = useState(false);
+  const { user } = useAuth();
   const hoy = new Date();
   const año = hoy.getFullYear();
   const mesActual = hoy.getMonth();
@@ -48,7 +52,40 @@ const CalendarioMensual = ({
     fetchClases();
   }, []);
 
+  useEffect(() => {
+    const fetchUsuario = async () => {
+      if (!user?.uid) return;
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) setUsuario(snap.data());
+    };
+    fetchUsuario();
+  }, [user]);
+
+  const puedeReservar = (usuario: any, fechaSeleccionada: string): boolean => {
+    if (!usuario?.clasesDisponibles || usuario.clasesDisponibles <= 0) return false;
+    const fechaPago = usuario.fechaPago?.toDate?.();
+    if (!fechaPago) return false;
+    const fechaClase = new Date(fechaSeleccionada);
+    const diasDesdePago = (fechaClase.getTime() - fechaPago.getTime()) / (1000 * 60 * 60 * 24);
+    return diasDesdePago <= 30;
+  };
+
   const mesesParaMostrar = [mesSeleccionado, mesSeleccionado + 1];
+
+
+  const handleClickDia = (fechaStr: string, esPermitido: boolean) => {
+    if (!esPermitido) return;
+    if (!usuario) {
+      setToast({ mensaje: "⚠️ No se pudo cargar tu perfil", tipo: "error" });
+      return;
+    }
+    if (!puedeReservar(usuario, fechaStr)) {
+      setMostrarAviso(true);
+      return;
+    }
+    setDiaSeleccionado(fechaStr);
+  };
 
   return (
     <div className="space-y-6 px-4 sm:px-6 md:px-8">
@@ -60,6 +97,12 @@ const CalendarioMensual = ({
 
       {!loading && (
         <>
+          {usuario && (
+            <div className="text-center text-fuchsia-300 text-sm mb-2">
+              Cupos disponibles: <strong>{usuario.clasesDisponibles}</strong>
+            </div>
+          )}
+
           <select
             value={mesSeleccionado}
             onChange={(e) => setMesSeleccionado(Number(e.target.value))}
@@ -113,7 +156,7 @@ const CalendarioMensual = ({
                               ${color}
                               ${esPermitido ? "hover:shadow-fuchsia-md" : ""}
                             `}
-                            onClick={() => esPermitido && setDiaSeleccionado(fechaStr)}
+                            onClick={() => handleClickDia(fechaStr, esPermitido)}
                           >
                             <p className="text-fuchsia-300 font-medium">{fecha.getDate()}</p>
                           </div>
@@ -127,6 +170,8 @@ const CalendarioMensual = ({
           </div>
         </>
       )}
+
+      {mostrarAviso && <AvisoPago onClose={() => setMostrarAviso(false)} />}
 
       {diaSeleccionado && (
         <ModalReservaClase
@@ -145,3 +190,4 @@ const CalendarioMensual = ({
 };
 
 export default CalendarioMensual;
+

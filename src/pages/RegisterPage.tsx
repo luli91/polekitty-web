@@ -61,6 +61,7 @@ const RegisterPage = () => {
         notificacionesActivas: true,
         puedeAnotarse: false,
         clasesReservadas: [],
+        clasesDisponibles: 0, 
       };
 
       await setDoc(doc(db, "users", uid), userData);

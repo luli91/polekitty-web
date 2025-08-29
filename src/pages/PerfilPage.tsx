@@ -9,6 +9,19 @@ import SeccionSecundaria from "../components/SeccionSecundaria";
 import PerfilAccordionMobile from "../components/PerfilAccordionMobile";
 import MenuDesktop from "../components/MenuDesktop";
 import type { UserData, ClaseReservada } from "../types";
+import { collection, getDocs } from "firebase/firestore";
+
+type PagoHistorial = {
+  id: string;
+  pack: string;
+  fecha: any; 
+  clases: number;
+  monto: number;
+  tipo: string;
+  metodo: string;
+  estado: string;
+};
+
 
 const PerfilPage = () => {
   const { user, setUser } = useAuth() as {
@@ -23,6 +36,7 @@ const PerfilPage = () => {
     { nombre: "Clase especial de Flexibilidad", fecha: "25/08/2025" },
     { nombre: "Encuentro Polekitty Primavera", fecha: "15/09/2025" },
   ]);
+  const [historialPagos, setHistorialPagos] = useState<PagoHistorial[]>([]);
 
   const handleGuardarCampo = async (campo: string, nuevoValor: string) => {
     const docRef = doc(db, "users", user.uid);
@@ -77,6 +91,34 @@ const PerfilPage = () => {
   }, [user]);
 
     if (!user) return <div className="text-white">Cargando perfil...</div>;
+  
+  useEffect(() => {
+  const fetchHistorialPagos = async () => {
+    if (!user?.uid) return;
+
+    const pagosRef = collection(db, "pagos", user.uid, "historial");
+    const snapshot = await getDocs(pagosRef);
+
+    const pagos = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        pack: data.pack,
+        fecha: data.fecha,
+        clases: data.clases,
+        monto: data.monto,
+        tipo: data.tipo,
+        metodo: data.metodo,
+        estado: data.estado,
+      } as PagoHistorial;
+    });
+
+    setHistorialPagos(pagos);
+  };
+
+  fetchHistorialPagos();
+}, [user]);
+
 
   return (
     <>
@@ -216,6 +258,47 @@ const PerfilPage = () => {
                 </ul>
               </SeccionSecundaria>
             )}
+
+              {seccionActiva === "historial" && (
+  <SeccionSecundaria titulo="Historial de packs comprados">
+    {historialPagos.length > 0 ? (
+      <div className="space-y-6">
+        {Object.entries(
+          historialPagos.reduce((acc, pago) => {
+            const fecha = pago.fecha?.toDate?.();
+            const claveMes = fecha
+              ? fecha.toLocaleDateString("es-AR", { month: "long", year: "numeric" })
+              : "Sin fecha";
+
+            if (!acc[claveMes]) acc[claveMes] = [];
+            acc[claveMes].push(pago);
+            return acc;
+          }, {} as Record<string, PagoHistorial[]>)
+        ).map(([mes, pagos]) => (
+          <div key={mes}>
+            <h3 className="text-fuchsia-400 text-lg font-bold mb-2">🌙 {mes}</h3>
+            <ul className="space-y-4">
+              {pagos.map((pago) => (
+                <li key={pago.id} className="bg-gray-800 p-4 rounded-lg shadow-md border-l-4 border-fuchsia-500">
+                  <p className="text-fuchsia-300 font-bold">{pago.pack}</p>
+                  <p className="text-sm text-gray-300">
+                    🗓️ {pago.fecha?.toDate ? pago.fecha.toDate().toLocaleDateString("es-AR") : "Fecha no disponible"}
+                  </p>
+                  <p className="text-sm text-gray-300">🎯 Clases: {pago.clases}</p>
+                  <p className="text-sm text-gray-300">💰 Monto: ${pago.monto}</p>
+                  <p className="text-sm text-gray-400 italic">Estado: {pago.estado}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p>No hay pagos registrados aún.</p>
+    )}
+  </SeccionSecundaria>
+)}
+
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
 {
   "functions": [
     {
-      "source": "functions",
-      "codebase": "default",
+      "source": "mercadopago",
+      "codebase": "mercadopago",
       "ignore": [
         "node_modules",
         ".git",
@@ -17,3 +17,4 @@
     }
   ]
 }
+

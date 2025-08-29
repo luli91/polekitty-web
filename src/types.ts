@@ -14,6 +14,7 @@ export interface UserData {
   notificacionesActivas: boolean;
   puedeAnotarse: boolean; 
  clasesReservadas: string[];
+ clasesDisponibles: number;
   nombre: string;
   apellido: string;
   edad: number | null; 

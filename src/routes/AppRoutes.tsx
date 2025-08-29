@@ -15,6 +15,8 @@ import MainPanel from "../components/MainPanel";
 import PerfilClientaPage from "../pages/dashboard/alumnas/PerfilClientaPage";
 import AgregarAlumnaPage from "../pages/dashboard/alumnas/AgregarAlumnaPage";
 import ListadoClase from "../pages/dashboard/ListadoClase";
+import PagoExitoso from "../pages/PagoExitoso";
+import PagoPack from "../components/PagoPack";
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -40,6 +42,19 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/pago-pack"
+          element={
+            <ProtectedRoute isAllowed={isLoggedIn && !isAdmin}>
+              <PagoPack />
+            </ProtectedRoute>
+          }
+          />
+          <Route path="/pago-exitoso" 
+          element={
+            <ProtectedRoute isAllowed={isLoggedIn && !isAdmin}>
+              <PagoExitoso />
+            </ProtectedRoute>
+          } />          
           <Route
             path="/perfil"
             element={

@@ -4,7 +4,6 @@ import {
   collection,
   setDoc,
   Timestamp,
-  getDoc,
   updateDoc,
   arrayUnion,
   arrayRemove,
@@ -14,6 +13,8 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { cancelarClaseYNotificar } from "../services/notificaciones";
 import { useAuth } from "../context/AuthContext";
+import { puedeRecuperarCupo } from "../helpers/puedeRecuperarCupo";
+import { puedeReservarClase } from "../helpers/puedeReservarClase";
 
 interface Clase {
   id: string;
@@ -57,41 +58,62 @@ const ModalReservaClase = ({ fecha, clases, onClose, setToast }: ModalReservaCla
   }, [clases]);
 
   const handleReserva = async (claseId: string) => {
-    if (!user) return;
+  if (!user) return;
 
-    const perfilRef = doc(db, "users", user.uid);
-    const perfilSnap = await getDoc(perfilRef);
-    const puedeAnotarse = perfilSnap.data()?.puedeAnotarse;
+  const claseSeleccionada = clasesActualizadas.find(c => c.id === claseId);
+  if (!claseSeleccionada) return;
 
-    if (!puedeAnotarse) {
-      setToast({
-        mensaje: "❌ No estás habilitada para reservar. Contactá a Flor.",
-        tipo: "error",
-      });
-      return;
-    }
-
-    const reservaRef = doc(db, `clases/${claseId}/reservas`, user.uid);
-    await setDoc(reservaRef, {
-      uid: user.uid,
-      nombre: user.displayName,
-      timestamp: Timestamp.now(),
+const claseConFechaConvertida = {
+  ...claseSeleccionada,
+  fecha: {
+    toDate: () => dayjs(fecha).toDate(), 
+  },
+};
+  const puedeReservar = puedeReservarClase(user, claseConFechaConvertida);
+  if (!puedeReservar.ok) {
+    setToast({
+      mensaje: `❌ ${puedeReservar.mensaje}`,
+      tipo: "error",
     });
+    return;
+  }
 
+  const reservaRef = doc(db, `clases/${claseId}/reservas`, user.uid);
+  await setDoc(reservaRef, {
+    uid: user.uid,
+    nombre: user.displayName,
+    timestamp: Timestamp.now(),
+  });
+
+  const perfilRef = doc(db, "users", user.uid);
+  await updateDoc(perfilRef, {
+    clasesDisponibles: user.clasesDisponibles - 1,
+    clasesReservadas: arrayUnion(claseId),
+  });
+
+  setToast({ mensaje: "¡Clase reservada! 💖", tipo: "exito" });
+  onClose();
+};
+
+const handleCancelacion = async (claseId: string) => {
+  if (!user) return;
+
+  await cancelarClaseYNotificar(claseId, user.uid);
+
+  const perfilRef = doc(db, "users", user.uid);
+
+  if (puedeRecuperarCupo(fecha)) {
     await updateDoc(perfilRef, {
-      clasesReservadas: arrayUnion(claseId),
+      clasesDisponibles: user.clasesDisponibles + 1,
+      clasesReservadas: arrayRemove(claseId),
     });
 
-    setToast({ mensaje: "¡Clase reservada! 💖", tipo: "exito" });
-    onClose();
-  };
-
-  const handleCancelacion = async (claseId: string) => {
-    if (!user) return;
-
-    await cancelarClaseYNotificar(claseId, user.uid);
-
-    await updateDoc(doc(db, "users", user.uid), {
+    setToast({
+      mensaje: "Cancelaste con tiempo y recuperaste tu cupo 💫",
+      tipo: "exito",
+    });
+  } else {
+    await updateDoc(perfilRef, {
       clasesReservadas: arrayRemove(claseId),
     });
 
@@ -99,8 +121,11 @@ const ModalReservaClase = ({ fecha, clases, onClose, setToast }: ModalReservaCla
       mensaje: "Cancelaste tu lugar y otras alumnas fueron notificadas 💌",
       tipo: "info",
     });
-    onClose();
-  };
+  }
+
+  onClose();
+};
+
 
   const fechaFormateada = dayjs(fecha).format("DD-MM-YYYY");
 
