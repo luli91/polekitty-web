@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import AppLayout from "../layouts/AppLayout"; // 💜 nuevo layout
+import AppLayout from "../layouts/AppLayout"; 
 import LoginPage from "../pages/LoginPage";
 import Dashboard from "../pages/dashboard/Dashboard";
 import CalendarPage from "../pages/CalendarPage";
@@ -13,7 +13,6 @@ import PerfilPage from "../pages/PerfilPage";
 import Alumnas from "../pages/dashboard/alumnas/Alumnas";
 import MainPanel from "../components/MainPanel";
 import PerfilClientaPage from "../pages/dashboard/alumnas/PerfilClientaPage";
-import AgregarAlumnaPage from "../pages/dashboard/alumnas/AgregarAlumnaPage";
 import ListadoClase from "../pages/dashboard/ListadoClase";
 import PagoExitoso from "../pages/PagoExitoso";
 import PagoPack from "../components/PagoPack";
@@ -83,7 +82,6 @@ const AppRoutes = () => {
         >
           <Route index element={<MainPanel />} />
           <Route path="alumnas" element={<Alumnas />} />
-          <Route path="agregar-alumna" element={<AgregarAlumnaPage />} />
           <Route path="clases" element={<ListadoClase />} />
           <Route path="clienta/:uid" element={<PerfilClientaPage />} />
         </Route>

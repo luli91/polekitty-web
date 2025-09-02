@@ -93,9 +93,6 @@ const Sidebar = () => {
                     <Link to="/dashboard/alumnas" className="block hover:text-pink-400 transition">
                       Listado
                     </Link>
-                    <Link to="/dashboard/agregar-alumna" className="block hover:text-pink-400 transition">
-                      Agregar
-                    </Link>
                   </DisclosurePanel>
                 </div>
               )}
