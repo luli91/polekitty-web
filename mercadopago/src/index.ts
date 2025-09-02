@@ -4,13 +4,16 @@ import mercadopago from "mercadopago";
 import { esFirmaValida } from "./helpers/esFirmaValida";
 import { onPagoAprobado } from "../functions/onPagoAprobado";
 import cors from "cors";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 admin.initializeApp();
 
 mercadopago.configure({
-  access_token: "APP_USR-3513551349994681-091617-5e28a1a1d3cb9090e193c33fcf0f4d60-184125453",
+  access_token: process.env.MP_ACCESS_TOKEN!,
 });
-const CLAVE_SECRETA = "f7f53b568ff33111b427483d6cec11a0c7483378755d0c2ea5190ea47d69b2d0";
+const CLAVE_SECRETA =  process.env.MP_CLAVE_SECRETA!;
 
 const corsHandler = cors({ origin: true });
 
