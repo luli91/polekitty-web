@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB-EyEGA_3azz2PurbnPSFrWe5rZeTtq5A",
-  authDomain: "polekitty.firebaseapp.com",
-  projectId: "polekitty",
-  storageBucket: "polekitty.firebasestorage.app",
-  messagingSenderId: "518917396704",
-  appId: "1:518917396704:web:966d2a7b82e5df2ad11885",
-  measurementId: "G-GXFZYY9Q5B"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
