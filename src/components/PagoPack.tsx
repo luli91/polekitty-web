@@ -25,7 +25,7 @@ const PagoPack = () => {
     setError("");
 
     try {
-      const response = await fetch("https://us-central1-polekitty.cloudfunctions.net/crearPreferencia", {
+      const response = await fetch("https://crearpreferencia-clsgre5uva-uc.a.run.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
