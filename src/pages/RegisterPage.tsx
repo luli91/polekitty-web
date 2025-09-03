@@ -10,6 +10,8 @@ import { useAuth } from "../context/AuthContext";
 import type { UserData } from "../types";
 import { crearUserFlags } from "../services/userFlagsService";
 import { useLocation } from "react-router-dom";
+import { EmailAuthProvider, linkWithCredential } from "firebase/auth";
+import { auth } from "../firebase";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -23,21 +25,35 @@ const RegisterPage = () => {
 
     const uidDesdeGoogle = datosGoogle.uid;
 
-     try {
-    let uid: string;
+    try {
+      let uid: string;
 
-    if (uidDesdeGoogle) {
-      // Ya está autenticada por Google, no crear usuario en Auth
-      uid = uidDesdeGoogle;
-    } else {
-      // Registro tradicional
-      if (!form.password || form.password.length < 6) {
-        return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
+      if (uidDesdeGoogle) {
+        // Ya está autenticada por Google, no crear usuario en Auth
+        uid = uidDesdeGoogle;
+
+        // 🛡️ Vincular contraseña si la escribió
+        if (form.password && form.password.length >= 6) {
+          const credential = EmailAuthProvider.credential(form.email, form.password);
+          try {
+            await linkWithCredential(auth.currentUser!, credential);
+            console.log("🔗 Proveedor password vinculado exitosamente");
+          } catch (linkError: any) {
+            console.error("❌ Error al vincular password:", linkError);
+            if (linkError.code === "auth/provider-already-linked") {
+              console.log("⚠️ El proveedor ya estaba vinculado");
+            }
+          }
+        }
+      } else {
+        // Registro tradicional
+        if (!form.password || form.password.length < 6) {
+          return { ok: false, error: "La contraseña debe tener al menos 6 caracteres." };
+        }
+
+        const userCredential = await registerWithEmail(form.email, form.password);
+        uid = userCredential.user.uid;
       }
-
-      const userCredential = await registerWithEmail(form.email, form.password);
-      uid = userCredential.user.uid;
-    }
 
       const userData: UserData = {
         uid,
@@ -61,33 +77,32 @@ const RegisterPage = () => {
         notificacionesActivas: true,
         puedeAnotarse: false,
         clasesReservadas: [],
-        clasesDisponibles: 0, 
+        clasesDisponibles: 0,
       };
 
       await setDoc(doc(db, "users", uid), userData);
       await crearUserFlags(uid);
 
-    
       setUser(userData);
       navigate("/perfil");
 
       return { ok: true };
     } catch (error: any) {
-  console.error("Error en el registro:", error);
+      console.error("Error en el registro:", error);
 
-  if (error.code === "auth/email-already-in-use") {
-    return {
-      ok: false,
-      error: "Este email ya está registrado. ¿Querés iniciar sesión con Google?",
-    };
-  }
+      if (error.code === "auth/email-already-in-use") {
+        return {
+          ok: false,
+          error: "Este email ya está registrado. ¿Querés iniciar sesión con Google?",
+        };
+      }
 
-  return { ok: false, error: "No se pudo completar el registro." };
-}
+      return { ok: false, error: "No se pudo completar el registro." };
+    }
   };
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-gray-950 text-white font-sans">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-950 text-white font-sans">
       {/* Imagen lateral */}
       <div className="hidden md:block md:w-1/2 relative overflow-hidden">
         <img
@@ -111,4 +126,3 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
-

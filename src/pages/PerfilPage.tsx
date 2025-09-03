@@ -10,6 +10,8 @@ import PerfilAccordionMobile from "../components/PerfilAccordionMobile";
 import MenuDesktop from "../components/MenuDesktop";
 import type { UserData, ClaseReservada } from "../types";
 import { collection, getDocs } from "firebase/firestore";
+import ModalVinculacionPassword from "../components/ModalVinculacionPassword";
+import { auth } from "../firebase"
 
 type PagoHistorial = {
   id: string;
@@ -24,6 +26,7 @@ type PagoHistorial = {
 
 
 const PerfilPage = () => {
+    const [mostrarModal, setMostrarModal] = useState(false);
   const { user, setUser } = useAuth() as {
     user: UserData;
     setUser: (u: UserData) => void;
@@ -118,10 +121,27 @@ const PerfilPage = () => {
 
   fetchHistorialPagos();
 }, [user]);
+      
+useEffect(() => {
+  const validar = async () => {
+    const authUser = auth.currentUser;
+    if (!authUser || !user) return;
 
+    const tienePassword = authUser.providerData.some(p => p.providerId === "password");
+    const docSnap = await getDoc(doc(db, "users", user.uid)); 
+    const yaVinculado = docSnap.exists() && docSnap.data()?.passwordVinculado;
+
+    if (!tienePassword && !yaVinculado) {
+      setMostrarModal(true);
+    }
+  };
+
+  validar();
+}, [user]);
 
   return (
     <>
+     {mostrarModal && <ModalVinculacionPassword user={user} />}
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white font-sans p-3 flex flex-col items-center">
         {/* Sección destacada */}
         <div className="w-full max-w-6xl mb-6">

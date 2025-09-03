@@ -198,7 +198,7 @@ const nextStep = () => {
   );
 
    return (
-    <div className="h-screen flex items-center justify-center bg-gray-950 text-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white p-4">
       {toast && <ToastMensaje mensaje={toast.mensaje} tipo={toast.tipo} onClose={() => setToast(null)} />}
       {success === true ? (
         <div className="bg-gray-800 p-6 rounded-xl shadow-2xl text-center max-w-md w-full border border-fuchsia-600">

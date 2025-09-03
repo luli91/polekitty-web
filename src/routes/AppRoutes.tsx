@@ -16,6 +16,7 @@ import PerfilClientaPage from "../pages/dashboard/alumnas/PerfilClientaPage";
 import ListadoClase from "../pages/dashboard/ListadoClase";
 import PagoExitoso from "../pages/PagoExitoso";
 import PagoPack from "../components/PagoPack";
+import RecuperarPasswordPage from "../pages/RecuperarPasswordPage";
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -63,6 +64,11 @@ const AppRoutes = () => {
             }
           />
         </Route>
+        <Route
+         path="/recuperar" 
+         element={<RecuperarPasswordPage />
+
+         } />
 
         {/* Rutas sin Navbar */}
         <Route path="/login" element={<LoginPage />} />
